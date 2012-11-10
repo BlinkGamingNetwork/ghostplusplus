@@ -1,20 +1,20 @@
 /*
 
-   Copyright [2008] [Trevor Hogan]
+Copyright [2008] [Trevor Hogan]
 
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-       http://www.apache.org/licenses/LICENSE-2.0
+http://www.apache.org/licenses/LICENSE-2.0
 
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 
-   CODE PORTED FROM THE ORIGINAL GHOST PROJECT: http://ghost.pwner.org/
+CODE PORTED FROM THE ORIGINAL GHOST PROJECT: http://ghost.pwner.org/
 
 */
 
@@ -44,7 +44,7 @@
 #include <stdlib.h>
 
 #ifdef WIN32
- #include <ws2tcpip.h>		// for WSAIoctl
+#include <ws2tcpip.h>		// for WSAIoctl
 #endif
 
 #define __STORMLIB_SELF__
@@ -88,18 +88,18 @@
 */
 
 #ifdef WIN32
- #include <windows.h>
- #include <winsock.h>
+#include <windows.h>
+#include <winsock.h>
 #endif
 
 #include <time.h>
 
 #ifndef WIN32
- #include <sys/time.h>
+#include <sys/time.h>
 #endif
 
 #ifdef __APPLE__
- #include <mach/mach_time.h>
+#include <mach/mach_time.h>
 #endif
 
 string gCFGFile;
@@ -170,44 +170,47 @@ void SignalCatcher( int s )
 
 void CONSOLE_Print( string message )
 {
-	cout << message << endl;
+	if( gGHost )
+		if ( gGHost->m_Console > 0 ) {
+			cout << message << endl;
 
-	// logging
+			// logging
 
-	if( !gLogFile.empty( ) )
-	{
-		if( gLogMethod == 1 )
-		{
-			ofstream Log;
-			Log.open( gLogFile.c_str( ), ios :: app );
-
-			if( !Log.fail( ) )
+			if( !gLogFile.empty( ) )
 			{
-				time_t Now = time( NULL );
-				string Time = asctime( localtime( &Now ) );
+				if( gLogMethod == 1 )
+				{
+					ofstream Log;
+					Log.open( gLogFile.c_str( ), ios :: app );
 
-				// erase the newline
+					if( !Log.fail( ) )
+					{
+						time_t Now = time( NULL );
+						string Time = asctime( localtime( &Now ) );
 
-				Time.erase( Time.size( ) - 1 );
-				Log << "[" << Time << "] " << message << endl;
-				Log.close( );
+						// erase the newline
+
+						Time.erase( Time.size( ) - 1 );
+						Log << "[" << Time << "] " << message << endl;
+						Log.close( );
+					}
+				}
+				else if( gLogMethod == 2 )
+				{
+					if( gLog && !gLog->fail( ) )
+					{
+						time_t Now = time( NULL );
+						string Time = asctime( localtime( &Now ) );
+
+						// erase the newline
+
+						Time.erase( Time.size( ) - 1 );
+						*gLog << "[" << Time << "] " << message << endl;
+						gLog->flush( );
+					}
+				}
 			}
 		}
-		else if( gLogMethod == 2 )
-		{
-			if( gLog && !gLog->fail( ) )
-			{
-				time_t Now = time( NULL );
-				string Time = asctime( localtime( &Now ) );
-
-				// erase the newline
-
-				Time.erase( Time.size( ) - 1 );
-				*gLog << "[" << Time << "] " << message << endl;
-				gLog->flush( );
-			}
-		}
-	}
 }
 
 void DEBUG_Print( string message )
@@ -219,7 +222,7 @@ void DEBUG_Print( BYTEARRAY b )
 {
 	cout << "{ ";
 
-        for( unsigned int i = 0; i < b.size( ); ++i )
+	for( unsigned int i = 0; i < b.size( ); ++i )
 		cout << hex << (int)b[i] << " ";
 
 	cout << "}" << endl;
@@ -298,7 +301,7 @@ int main( int argc, char **argv )
 
 	unsigned int TimerResolution = 0;
 
-        for( unsigned int i = 1; i <= 5; ++i )
+	for( unsigned int i = 1; i <= 5; ++i )
 	{
 		if( timeBeginPeriod( i ) == TIMERR_NOERROR )
 		{
@@ -444,7 +447,7 @@ CGHost :: CGHost( CConfig *CFG )
 		{
 			int nNumInterfaces = nBytesReturned / sizeof(INTERFACE_INFO);
 
-                        for( int i = 0; i < nNumInterfaces; ++i )
+			for( int i = 0; i < nNumInterfaces; ++i )
 			{
 				sockaddr_in *pAddress;
 				pAddress = (sockaddr_in *)&(InterfaceList[i].iiAddress);
@@ -471,7 +474,7 @@ CGHost :: CGHost( CConfig *CFG )
 			CONSOLE_Print( "[GHOST] error finding local IP addresses - gethostbyname failed" );
 		else
 		{
-                        for( int i = 0; HostEnt->h_addr_list[i] != NULL; ++i )
+			for( int i = 0; HostEnt->h_addr_list[i] != NULL; ++i )
 			{
 				struct in_addr Address;
 				memcpy( &Address, HostEnt->h_addr_list[i], sizeof(struct in_addr) );
@@ -521,7 +524,7 @@ CGHost :: CGHost( CConfig *CFG )
 	// load the battle.net connections
 	// we're just loading the config data and creating the CBNET classes here, the connections are established later (in the Update function)
 
-        for( uint32_t i = 1; i < 10; ++i )
+	for( uint32_t i = 1; i < 10; ++i )
 	{
 		string Prefix;
 
@@ -680,6 +683,8 @@ CGHost :: CGHost( CConfig *CFG )
 	else
 		m_AdminGame = NULL;
 
+	m_UpdateList = GetTime();
+
 	if( m_BNETs.empty( ) && !m_AdminGame )
 		CONSOLE_Print( "[GHOST] warning - no battle.net connections found and no admin game created" );
 
@@ -695,20 +700,20 @@ CGHost :: ~CGHost( )
 	delete m_UDPSocket;
 	delete m_ReconnectSocket;
 
-        for( vector<CTCPSocket *> :: iterator i = m_ReconnectSockets.begin( ); i != m_ReconnectSockets.end( ); ++i )
+	for( vector<CTCPSocket *> :: iterator i = m_ReconnectSockets.begin( ); i != m_ReconnectSockets.end( ); ++i )
 		delete *i;
 
 	delete m_GPSProtocol;
 	delete m_CRC;
 	delete m_SHA;
 
-        for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); ++i )
+	for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); ++i )
 		delete *i;
 
 	delete m_CurrentGame;
 	delete m_AdminGame;
 
-        for( vector<CBaseGame *> :: iterator i = m_Games.begin( ); i != m_Games.end( ); ++i )
+	for( vector<CBaseGame *> :: iterator i = m_Games.begin( ); i != m_Games.end( ); ++i )
 		delete *i;
 
 	delete m_DB;
@@ -752,7 +757,7 @@ bool CGHost :: Update( long usecBlock )
 		{
 			CONSOLE_Print( "[GHOST] deleting all battle.net connections in preparation for exiting nicely" );
 
-                        for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); ++i )
+			for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); ++i )
 				delete *i;
 
 			m_BNETs.clear( );
@@ -809,7 +814,7 @@ bool CGHost :: Update( long usecBlock )
 			i = m_Callables.erase( i );
 		}
 		else
-                        ++i;
+			++i;
 	}
 
 	// create the GProxy++ reconnect listener
@@ -851,7 +856,7 @@ bool CGHost :: Update( long usecBlock )
 
 	// 1. all battle.net sockets
 
-        for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); ++i )
+	for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); ++i )
 		NumFDs += (*i)->SetFD( &fd, &send_fd, &nfds );
 
 	// 2. the current game's server and player sockets
@@ -866,7 +871,7 @@ bool CGHost :: Update( long usecBlock )
 
 	// 4. all running games' player sockets
 
-        for( vector<CBaseGame *> :: iterator i = m_Games.begin( ); i != m_Games.end( ); ++i )
+	for( vector<CBaseGame *> :: iterator i = m_Games.begin( ); i != m_Games.end( ); ++i )
 		NumFDs += (*i)->SetFD( &fd, &send_fd, &nfds );
 
 	// 5. the GProxy++ reconnect socket(s)
@@ -874,13 +879,13 @@ bool CGHost :: Update( long usecBlock )
 	if( m_Reconnect && m_ReconnectSocket )
 	{
 		m_ReconnectSocket->SetFD( &fd, &send_fd, &nfds );
-                ++NumFDs;
+		++NumFDs;
 	}
 
-        for( vector<CTCPSocket *> :: iterator i = m_ReconnectSockets.begin( ); i != m_ReconnectSockets.end( ); ++i )
+	for( vector<CTCPSocket *> :: iterator i = m_ReconnectSockets.begin( ); i != m_ReconnectSockets.end( ); ++i )
 	{
 		(*i)->SetFD( &fd, &send_fd, &nfds );
-                ++NumFDs;
+		++NumFDs;
 	}
 
 	// before we call select we need to determine how long to block for
@@ -888,7 +893,7 @@ bool CGHost :: Update( long usecBlock )
 	// however, in an effort to make game updates happen closer to the desired latency setting we now use a dynamic block interval
 	// note: we still use the passed usecBlock as a hard maximum
 
-        for( vector<CBaseGame *> :: iterator i = m_Games.begin( ); i != m_Games.end( ); ++i )
+	for( vector<CBaseGame *> :: iterator i = m_Games.begin( ); i != m_Games.end( ); ++i )
 	{
 		if( (*i)->GetNextTimedActionTicks( ) * 1000 < usecBlock )
 			usecBlock = (*i)->GetNextTimedActionTicks( ) * 1000;
@@ -931,6 +936,14 @@ bool CGHost :: Update( long usecBlock )
 
 	// update current game
 
+	bool UpdateList = false;
+	fstream GameList;
+	if ( GetTime() - m_UpdateList > 1 ) {
+		m_UpdateList = GetTime();
+		UpdateList = true;
+		GameList.open( "gamelist.txt", ios_base::in|ios_base::out|ios_base::trunc );
+	}
+
 	if( m_CurrentGame )
 	{
 		if( m_CurrentGame->Update( &fd, &send_fd ) )
@@ -939,14 +952,20 @@ bool CGHost :: Update( long usecBlock )
 			delete m_CurrentGame;
 			m_CurrentGame = NULL;
 
-                        for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); ++i )
+			for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); ++i )
 			{
 				(*i)->QueueGameUncreate( );
 				(*i)->QueueEnterChat( );
 			}
 		}
-		else if( m_CurrentGame )
+		else if( m_CurrentGame ) {
 			m_CurrentGame->UpdatePost( &send_fd );
+			if ( UpdateList ) {
+				string List;
+				List = m_CurrentGame->UpdateList( );
+				GameList << List;
+			}
+		}
 	}
 
 	// update admin game
@@ -978,13 +997,22 @@ bool CGHost :: Update( long usecBlock )
 		else
 		{
 			(*i)->UpdatePost( &send_fd );
-                        ++i;
+			if ( UpdateList ) {
+				string List;
+				List = (*i)->UpdateList( );
+				GameList << List;
+			}
+			++i;
+			
 		}
 	}
+	
+	if( UpdateList )
+		GameList.close();
 
 	// update battle.net connections
 
-        for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); ++i )
+	for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); ++i )
 	{
 		if( (*i)->Update( &fd, &send_fd ) )
 			BNETExit = true;
@@ -1037,7 +1065,7 @@ bool CGHost :: Update( long usecBlock )
 
 							CGamePlayer *Match = NULL;
 
-                                                        for( vector<CBaseGame *> :: iterator j = m_Games.begin( ); j != m_Games.end( ); ++j )
+							for( vector<CBaseGame *> :: iterator j = m_Games.begin( ); j != m_Games.end( ); ++j )
 							{
 								if( (*j)->GetGameLoaded( ) )
 								{
@@ -1099,7 +1127,7 @@ bool CGHost :: Update( long usecBlock )
 		}
 
 		(*i)->DoSend( &send_fd );
-                ++i;
+		++i;
 	}
 
 	// autohost
@@ -1225,7 +1253,7 @@ void CGHost :: EventBNETGameRefreshFailed( CBNET *bnet )
 {
 	if( m_CurrentGame )
 	{
-                for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); ++i )
+		for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); ++i )
 		{
 			(*i)->QueueChatCommand( m_Language->UnableToCreateGameTryAnotherName( bnet->GetServer( ), m_CurrentGame->GetGameName( ) ) );
 
@@ -1267,7 +1295,7 @@ void CGHost :: EventBNETWhisper( CBNET *bnet, string user, string message )
 		if( m_CurrentGame )
 			m_CurrentGame->SendLocalAdminChat( "[W: " + bnet->GetServerAlias( ) + "] [" + user + "] " + message );
 
-                for( vector<CBaseGame *> :: iterator i = m_Games.begin( ); i != m_Games.end( ); ++i )
+		for( vector<CBaseGame *> :: iterator i = m_Games.begin( ); i != m_Games.end( ); ++i )
 			(*i)->SendLocalAdminChat( "[W: " + bnet->GetServerAlias( ) + "] [" + user + "] " + message );
 	}
 }
@@ -1281,7 +1309,7 @@ void CGHost :: EventBNETChat( CBNET *bnet, string user, string message )
 		if( m_CurrentGame )
 			m_CurrentGame->SendLocalAdminChat( "[L: " + bnet->GetServerAlias( ) + "] [" + user + "] " + message );
 
-                for( vector<CBaseGame *> :: iterator i = m_Games.begin( ); i != m_Games.end( ); ++i )
+		for( vector<CBaseGame *> :: iterator i = m_Games.begin( ); i != m_Games.end( ); ++i )
 			(*i)->SendLocalAdminChat( "[L: " + bnet->GetServerAlias( ) + "] [" + user + "] " + message );
 	}
 }
@@ -1295,20 +1323,20 @@ void CGHost :: EventBNETEmote( CBNET *bnet, string user, string message )
 		if( m_CurrentGame )
 			m_CurrentGame->SendLocalAdminChat( "[E: " + bnet->GetServerAlias( ) + "] [" + user + "] " + message );
 
-                for( vector<CBaseGame *> :: iterator i = m_Games.begin( ); i != m_Games.end( ); ++i )
+		for( vector<CBaseGame *> :: iterator i = m_Games.begin( ); i != m_Games.end( ); ++i )
 			(*i)->SendLocalAdminChat( "[E: " + bnet->GetServerAlias( ) + "] [" + user + "] " + message );
 	}
 }
 
 void CGHost :: EventGameDeleted( CBaseGame *game )
 {
-        for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); ++i )
-	{
-		(*i)->QueueChatCommand( m_Language->GameIsOver( game->GetDescription( ) ) );
+	//for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); ++i )
+	//{
+	//	(*i)->QueueChatCommand( m_Language->GameIsOver( game->GetDescription( ) ) );
 
-		if( (*i)->GetServer( ) == game->GetCreatorServer( ) )
-			(*i)->QueueChatCommand( m_Language->GameIsOver( game->GetDescription( ) ), game->GetCreatorName( ), true );
-	}
+	//	if( (*i)->GetServer( ) == game->GetCreatorServer( ) )
+	//		(*i)->QueueChatCommand( m_Language->GameIsOver( game->GetDescription( ) ), game->GetCreatorName( ), true );
+	//}
 }
 
 void CGHost :: ReloadConfigs( )
@@ -1384,7 +1412,8 @@ void CGHost :: SetConfigs( CConfig *CFG )
 	m_LocalAdminMessages = CFG->GetInt( "bot_localadminmessages", 1 ) == 0 ? false : true;
 	m_TCPNoDelay = CFG->GetInt( "tcp_nodelay", 0 ) == 0 ? false : true;
 	m_MatchMakingMethod = CFG->GetInt( "bot_matchmakingmethod", 1 );
-	m_MapGameType = CFG->GetUInt( "bot_mapgametype", 0 );
+	m_MapGameType = CFG->GetUInt( "bot_mapgametype", 4294901760 );
+	m_Console = CFG->GetInt( "bot_console", 1 );
 }
 
 void CGHost :: ExtractScripts( )
@@ -1528,7 +1557,7 @@ void CGHost :: CreateGame( CMap *map, unsigned char gameState, bool saveGame, st
 {
 	if( !m_Enabled )
 	{
-                for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); ++i )
+		for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); ++i )
 		{
 			if( (*i)->GetServer( ) == creatorServer )
 				(*i)->QueueChatCommand( m_Language->UnableToCreateGameDisabled( gameName ), creatorName, whisper );
@@ -1542,7 +1571,7 @@ void CGHost :: CreateGame( CMap *map, unsigned char gameState, bool saveGame, st
 
 	if( gameName.size( ) > 31 )
 	{
-                for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); ++i )
+		for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); ++i )
 		{
 			if( (*i)->GetServer( ) == creatorServer )
 				(*i)->QueueChatCommand( m_Language->UnableToCreateGameNameTooLong( gameName ), creatorName, whisper );
@@ -1556,7 +1585,7 @@ void CGHost :: CreateGame( CMap *map, unsigned char gameState, bool saveGame, st
 
 	if( !map->GetValid( ) )
 	{
-                for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); ++i )
+		for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); ++i )
 		{
 			if( (*i)->GetServer( ) == creatorServer )
 				(*i)->QueueChatCommand( m_Language->UnableToCreateGameInvalidMap( gameName ), creatorName, whisper );
@@ -1572,7 +1601,7 @@ void CGHost :: CreateGame( CMap *map, unsigned char gameState, bool saveGame, st
 	{
 		if( !m_SaveGame->GetValid( ) )
 		{
-                        for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); ++i )
+			for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); ++i )
 			{
 				if( (*i)->GetServer( ) == creatorServer )
 					(*i)->QueueChatCommand( m_Language->UnableToCreateGameInvalidSaveGame( gameName ), creatorName, whisper );
@@ -1593,7 +1622,7 @@ void CGHost :: CreateGame( CMap *map, unsigned char gameState, bool saveGame, st
 		{
 			CONSOLE_Print( "[GHOST] path mismatch, saved game path is [" + MapPath1 + "] but map path is [" + MapPath2 + "]" );
 
-                        for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); ++i )
+			for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); ++i )
 			{
 				if( (*i)->GetServer( ) == creatorServer )
 					(*i)->QueueChatCommand( m_Language->UnableToCreateGameSaveGameMapMismatch( gameName ), creatorName, whisper );
@@ -1607,7 +1636,7 @@ void CGHost :: CreateGame( CMap *map, unsigned char gameState, bool saveGame, st
 
 		if( m_EnforcePlayers.empty( ) )
 		{
-                        for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); ++i )
+			for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); ++i )
 			{
 				if( (*i)->GetServer( ) == creatorServer )
 					(*i)->QueueChatCommand( m_Language->UnableToCreateGameMustEnforceFirst( gameName ), creatorName, whisper );
@@ -1622,7 +1651,7 @@ void CGHost :: CreateGame( CMap *map, unsigned char gameState, bool saveGame, st
 
 	if( m_CurrentGame )
 	{
-                for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); ++i )
+		for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); ++i )
 		{
 			if( (*i)->GetServer( ) == creatorServer )
 				(*i)->QueueChatCommand( m_Language->UnableToCreateGameAnotherGameInLobby( gameName, m_CurrentGame->GetDescription( ) ), creatorName, whisper );
@@ -1636,7 +1665,7 @@ void CGHost :: CreateGame( CMap *map, unsigned char gameState, bool saveGame, st
 
 	if( m_Games.size( ) >= m_MaxGames )
 	{
-                for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); ++i )
+		for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); ++i )
 		{
 			if( (*i)->GetServer( ) == creatorServer )
 				(*i)->QueueChatCommand( m_Language->UnableToCreateGameMaxGamesReached( gameName, UTIL_ToString( m_MaxGames ) ), creatorName, whisper );
@@ -1663,26 +1692,26 @@ void CGHost :: CreateGame( CMap *map, unsigned char gameState, bool saveGame, st
 		m_EnforcePlayers.clear( );
 	}
 
-        for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); ++i )
+	for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); ++i )
 	{
-		if( whisper && (*i)->GetServer( ) == creatorServer )
-		{
-			// note that we send this whisper only on the creator server
+		//if( whisper && (*i)->GetServer( ) == creatorServer )
+		//{
+		//	// note that we send this whisper only on the creator server
 
-			if( gameState == GAME_PRIVATE )
-				(*i)->QueueChatCommand( m_Language->CreatingPrivateGame( gameName, ownerName ), creatorName, whisper );
-			else if( gameState == GAME_PUBLIC )
-				(*i)->QueueChatCommand( m_Language->CreatingPublicGame( gameName, ownerName ), creatorName, whisper );
-		}
-		else
-		{
-			// note that we send this chat message on all other bnet servers
+		//	if( gameState == GAME_PRIVATE )
+		//		(*i)->QueueChatCommand( m_Language->CreatingPrivateGame( gameName, ownerName ), creatorName, whisper );
+		//	else if( gameState == GAME_PUBLIC )
+		//		(*i)->QueueChatCommand( m_Language->CreatingPublicGame( gameName, ownerName ), creatorName, whisper );
+		//}
+		//else
+		//{
+		//	// note that we send this chat message on all other bnet servers
 
-			if( gameState == GAME_PRIVATE )
-				(*i)->QueueChatCommand( m_Language->CreatingPrivateGame( gameName, ownerName ) );
-			else if( gameState == GAME_PUBLIC )
-				(*i)->QueueChatCommand( m_Language->CreatingPublicGame( gameName, ownerName ) );
-		}
+		//	if( gameState == GAME_PRIVATE )
+		//		(*i)->QueueChatCommand( m_Language->CreatingPrivateGame( gameName, ownerName ) );
+		//	else if( gameState == GAME_PUBLIC )
+		//		(*i)->QueueChatCommand( m_Language->CreatingPublicGame( gameName, ownerName ) );
+		//}
 
 		if( saveGame )
 			(*i)->QueueGameCreate( gameState, gameName, string( ), map, m_SaveGame, m_CurrentGame->GetHostCounter( ) );
@@ -1704,7 +1733,7 @@ void CGHost :: CreateGame( CMap *map, unsigned char gameState, bool saveGame, st
 
 	if( gameState == GAME_PRIVATE )
 	{
-                for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); ++i )
+		for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); ++i )
 		{
 			if( (*i)->GetPasswordHashType( ) != "pvpgn" )
 				(*i)->QueueEnterChat( );
@@ -1713,12 +1742,83 @@ void CGHost :: CreateGame( CMap *map, unsigned char gameState, bool saveGame, st
 
 	// hold friends and/or clan members
 
-        for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); ++i )
+	for( vector<CBNET *> :: iterator i = m_BNETs.begin( ); i != m_BNETs.end( ); ++i )
 	{
 		if( (*i)->GetHoldFriends( ) )
 			(*i)->HoldFriends( m_CurrentGame );
 
 		if( (*i)->GetHoldClan( ) )
 			(*i)->HoldClan( m_CurrentGame );
+	}
+}
+
+void CGHost :: DenyIP( string ip, uint32_t duration, string reason )
+{
+	//CONSOLE_Print( "[DENY] Denying connections from " + ip + " for " + UTIL_ToString( duration ) + " milliseconds: " + reason );
+	uint32_t end = GetTicks( ) + duration;
+	
+	// check to see if already in table
+
+	// Log it
+	if( duration >= 900000 ) {
+		fstream BanList;
+		BanList.open( "banlist.txt", ios_base::in|ios_base::out|ios_base::app );
+		BanList << ip + "\n";
+		BanList.close();
+	}
+	
+	if( m_DenyIP.count( ip ) == 0 )
+	{
+		m_DenyIP[ip] = end;
+		m_DenyCount[ip] = 0;
+	}
+	
+	else
+	{
+		// only add if new ending time is greater than last ending time
+		if( m_DenyIP[ip] < end ) {
+			// increment deny count if necessary
+			if( GetTicks( ) < 20000 + m_DenyIP[ip] )
+			{
+				m_DenyCount[ip]++; // DenyCount[ip] should always exist if DenyIP[ip] does
+				
+				if( m_DenyCount[ip] > 10 )
+				{
+					end = GetTicks( ) + 1200000;
+					CONSOLE_Print( "[DENY] Extending deny due to high deny count " );
+					m_DenyCount[ip] = 0;
+				}
+			}
+			
+			else
+				m_DenyCount[ip] = 0;
+			CONSOLE_Print("deny count: " + UTIL_ToString(m_DenyCount[ip]) + " " + UTIL_ToString(GetTicks()) + " " + UTIL_ToString(m_DenyIP[ip]) + " " + UTIL_ToString(GetTicks( ) - m_DenyIP[ip]));
+			m_DenyIP[ip] = end;
+		}
+	}
+}
+
+bool CGHost :: CheckDeny( string ip ) {
+	if( m_DenyIP.count( ip ) == 0 )
+		return false;
+	else
+	{
+		// in case GetTicks( ) counter resets, limit at twenty minutes maximum deny
+     	if( m_DenyIP[ip] > GetTicks( ) + 1200000 )
+        	m_DenyIP[ip] = GetTicks( ) + 1200000;
+
+		if( GetTicks( ) < m_DenyIP[ip] )
+			return true;
+		else
+		{
+			CONSOLE_Print("deny count: " + UTIL_ToString(m_DenyCount[ip]) + " " + UTIL_ToString(GetTicks()) + " " + UTIL_ToString(m_DenyIP[ip]) + " " + UTIL_ToString(GetTicks( ) - m_DenyIP[ip]));
+			// delete stale entries only, so that we can use DenyCount properly
+			if( GetTicks( ) - m_DenyIP[ip] > 60000 )
+			{
+				m_DenyIP.erase( ip );
+				m_DenyCount.erase( ip );
+			}
+			return false;
+		}
 	}
 }

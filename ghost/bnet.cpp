@@ -37,6 +37,8 @@ CODE PORTED FROM THE ORIGINAL GHOST PROJECT: http://ghost.pwner.org/
 #include "game_base.h"
 
 #include <boost/filesystem.hpp>
+#include <cstdlib>
+#include <ctime>
 
 using namespace boost :: filesystem;
 
@@ -345,9 +347,9 @@ bool CBNET :: Update( void *fd, void *send_fd )
 			CDBGamePlayerSummary *GamePlayerSummary = i->second->GetResult( );
 
 			if( GamePlayerSummary )
-				QueueChatCommand( m_GHost->m_Language->HasPlayedGamesWithThisBot( i->second->GetName( ), GamePlayerSummary->GetFirstGameDateTime( ), GamePlayerSummary->GetLastGameDateTime( ), UTIL_ToString( GamePlayerSummary->GetTotalGames( ) ), UTIL_ToString( (float)GamePlayerSummary->GetAvgLoadingTime( ) / 1000, 2 ), UTIL_ToString( GamePlayerSummary->GetAvgLeftPercent( ) ) ), i->first, !i->first.empty( ) );
+				QueueChatCommand( m_GHost->m_Language->HasPlayedGamesWithThisBot( i->second->GetName( ), GamePlayerSummary->GetServer(), GamePlayerSummary->GetFirstGameDateTime( ), GamePlayerSummary->GetLastGameDateTime( ), UTIL_ToString( GamePlayerSummary->GetTotalGames( ) ), UTIL_ToString( (float)GamePlayerSummary->GetAvgLoadingTime( ) / 1000, 2 ), UTIL_ToString( GamePlayerSummary->GetAvgLeftPercent( ) ) ), i->first, !i->first.empty( ) );
 			else
-				QueueChatCommand( m_GHost->m_Language->HasntPlayedGamesWithThisBot( i->second->GetName( ) ), i->first, !i->first.empty( ) );
+				QueueChatCommand( m_GHost->m_Language->HasntPlayedGamesWithThisBot( i->second->GetName( ), i->second->GetServer( ) ), i->first, !i->first.empty( ) );
 
 			m_GHost->m_DB->RecoverCallable( i->second );
 			delete i->second;
@@ -366,6 +368,7 @@ bool CBNET :: Update( void *fd, void *send_fd )
 			if( DotAPlayerSummary )
 			{
 				string Summary = m_GHost->m_Language->HasPlayedDotAGamesWithThisBot(	i->second->GetName( ),
+					DotAPlayerSummary->GetServer( ),
 					UTIL_ToString( DotAPlayerSummary->GetTotalGames( ) ),
 					UTIL_ToString( DotAPlayerSummary->GetTotalWins( ) ),
 					UTIL_ToString( DotAPlayerSummary->GetTotalLosses( ) ),
@@ -386,12 +389,14 @@ bool CBNET :: Update( void *fd, void *send_fd )
 					UTIL_ToString( DotAPlayerSummary->GetAvgNeutralKills( ), 2 ),
 					UTIL_ToString( DotAPlayerSummary->GetAvgTowerKills( ), 2 ),
 					UTIL_ToString( DotAPlayerSummary->GetAvgRaxKills( ), 2 ),
-					UTIL_ToString( DotAPlayerSummary->GetAvgCourierKills( ), 2 ) );
+					UTIL_ToString( DotAPlayerSummary->GetAvgCourierKills( ), 2 ),
+					UTIL_ToString( DotAPlayerSummary->GetScore( ) )
+				);
 
 				QueueChatCommand( Summary, i->first, !i->first.empty( ) );
 			}
 			else
-				QueueChatCommand( m_GHost->m_Language->HasntPlayedDotAGamesWithThisBot( i->second->GetName( ) ), i->first, !i->first.empty( ) );
+				QueueChatCommand( m_GHost->m_Language->HasntPlayedDotAGamesWithThisBot( i->second->GetName( ), i->second->GetServer( ) ), i->first, !i->first.empty( ) );
 
 			m_GHost->m_DB->RecoverCallable( i->second );
 			delete i->second;
@@ -416,9 +421,9 @@ bool CBNET :: Update( void *fd, void *send_fd )
 		m_LastAdminRefreshTime = GetTime( );
 	}
 
-	// refresh the ban list every 60 minutes
+	// refresh the ban list every 5 minutes
 
-	if( !m_CallableBanList && GetTime( ) - m_LastBanRefreshTime >= 3600 )
+	if( !m_CallableBanList && GetTime( ) - m_LastBanRefreshTime >= 300 )
 		m_CallableBanList = m_GHost->m_DB->ThreadedBanList( m_Server );
 
 	if( m_CallableBanList && m_CallableBanList->GetReady( ) )
@@ -752,7 +757,13 @@ void CBNET :: ProcessPackets( )
 				break;
 
 			case CBNETProtocol :: SID_PING:
-				m_Socket->PutBytes( m_Protocol->SEND_SID_PING( m_Protocol->RECEIVE_SID_PING( Packet->GetData( ) ) ) );
+				if ( m_GHost->m_Games.size( ) > 0 ) {
+					//MILLISLEEP( 250 );
+				} else if ( !m_LoggedIn ) {
+					//CONSOLE_Print( "[BNET: " + m_ServerAlias + "] Spoofing Ping" );
+					//MILLISLEEP( 15000 );
+				}
+				//m_Socket->PutBytes( m_Protocol->SEND_SID_PING( m_Protocol->RECEIVE_SID_PING( Packet->GetData( ) ) ) );
 				break;
 
 			case CBNETProtocol :: SID_AUTH_INFO:
@@ -1429,7 +1440,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 				// !UNBAN
 				//
 
-				else if( ( Command == "delban" || Command == "unban" ) && !Payload.empty( ) )
+				else if( ( Command == "delban" || Command == "unban" ) && !Payload.empty( ) && IsRootAdmin( User ) )
 					m_PairedBanRemoves.push_back( PairedBanRemove( Whisper ? User : string( ), m_GHost->m_DB->ThreadedBanRemove( Payload ) ) );
 
 				//
@@ -2055,7 +2066,7 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 						// if the player sent "!start force" skip the checks and start the countdown
 						// otherwise check that the game is ready to start
 
-						if( Payload == "force" )
+						if( Payload == "force" && IsRootAdmin( User ) )
 							m_GHost->m_CurrentGame->StartCountDown( true );
 						else
 							m_GHost->m_CurrentGame->StartCountDown( false );
@@ -2135,6 +2146,23 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 					else
 						QueueChatCommand( "WARDEN STATUS --- Not connected to BNLS server.", User, Whisper );
 				}
+
+				else if( Command == "setcounter" ) {
+					
+					
+					uint32_t GameNumber;
+					stringstream SS;
+					SS << Payload;
+					SS >> GameNumber;
+
+					if( SS.fail( ) )
+						CONSOLE_Print( "[BNET: " + m_ServerAlias + "] bad input #1 to saygame command" );
+					else
+					{
+						m_GHost->m_HostCounter = GameNumber;
+						QueueChatCommand( "Autohost Game Counter set to " + UTIL_ToString(GameNumber) + "." , User, Whisper );
+					}
+				}
 			}
 			else
 				CONSOLE_Print( "[BNET: " + m_ServerAlias + "] non-admin [" + User + "] sent command [" + Message + "]" );
@@ -2163,8 +2191,8 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 
 					// check for potential abuse
 
-					if( !StatsUser.empty( ) && StatsUser.size( ) < 16 && StatsUser[0] != '/' )
-						m_PairedGPSChecks.push_back( PairedGPSCheck( Whisper ? User : string( ), m_GHost->m_DB->ThreadedGamePlayerSummaryCheck( StatsUser ) ) );
+					//if( !StatsUser.empty( ) && StatsUser.size( ) < 16 && StatsUser[0] != '/' )
+						//m_PairedGPSChecks.push_back( PairedGPSCheck( Whisper ? User : string( ), m_GHost->m_DB->ThreadedGamePlayerSummaryCheck( StatsUser ) ) );
 				}
 
 				//
@@ -2181,15 +2209,15 @@ void CBNET :: ProcessChatEvent( CIncomingChatEvent *chatEvent )
 
 					// check for potential abuse
 
-					if( !StatsUser.empty( ) && StatsUser.size( ) < 16 && StatsUser[0] != '/' )
-						m_PairedDPSChecks.push_back( PairedDPSCheck( Whisper ? User : string( ), m_GHost->m_DB->ThreadedDotAPlayerSummaryCheck( StatsUser ) ) );
+					//if( !StatsUser.empty( ) && StatsUser.size( ) < 16 && StatsUser[0] != '/' )
+						//m_PairedDPSChecks.push_back( PairedDPSCheck( Whisper ? User : string( ), m_GHost->m_DB->ThreadedDotAPlayerSummaryCheck( StatsUser, ) ) );
 				}
 
 				//
-				// !VERSION
+				// !TS
 				//
 
-				else if( Command == "version" )
+				else if( Command == "ts" )
 				{
 					if( IsAdmin( User ) || IsRootAdmin( User ) )
 						QueueChatCommand( m_GHost->m_Language->VersionAdmin( m_GHost->m_Version ), User, Whisper );
@@ -2381,11 +2409,22 @@ void CBNET :: QueueGameRefresh( unsigned char state, string gameName, string hos
 		}
 		else
 		{
-			uint32_t MapGameType = map->GetMapGameType( );
-			MapGameType |= MAPGAMETYPE_UNKNOWN0;
-			//Apply overwrite if not equal to 0
-			MapGameType = ( m_GHost->m_MapGameType != 0 ) ? MapGameType : m_GHost->m_MapGameType;
-
+			//refresh tweak
+			//uint32_t MapGameType = map->GetMapGameType( );
+			//uint32_t MapGameType = 83908723;
+			uint32_t MapGameType =  m_GHost->m_MapGameType;
+			//srand((unsigned)time(0));
+			//int r = rand() % 3;
+			//if ( r == 0 ) {
+			//	MapGameType = 4294901760; // FFFF0000
+			//} else if ( r == 1 ) {
+			//	MapGameType = 4294901762 + rand() % 5; // FFFF0002 -- FFFF0006
+			//} else if ( r == 2 ) {
+			//	MapGameType = 4294901776 + rand() % 7; // FFFF0010 -- FFFF0017
+			
+			//MapGameType |= MAPGAMETYPE_UNKNOWN0;
+			//CONSOLE_Print( "Random: " + UTIL_ToString(r) );
+			//CONSOLE_Print( "Code: " + UTIL_ToString(MapGameType) );
 			if( state == GAME_PRIVATE )
 				MapGameType |= MAPGAMETYPE_PRIVATEGAME;
 

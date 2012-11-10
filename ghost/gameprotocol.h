@@ -232,6 +232,8 @@ public:
 	string GetMessage( )			{ return m_Message; }
 	unsigned char GetByte( )		{ return m_Byte; }
 	BYTEARRAY GetExtraFlags( )		{ return m_ExtraFlags; }
+
+	void SetMessage( string nMessage )		{ m_Message = nMessage; }
 };
 
 class CIncomingMapSize

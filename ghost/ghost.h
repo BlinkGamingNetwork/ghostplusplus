@@ -60,6 +60,8 @@ public:
 	CGHostDB *m_DBLocal;					// local database (for temporary data)
 	vector<CBaseCallable *> m_Callables;	// vector of orphaned callables waiting to die
 	vector<BYTEARRAY> m_LocalAddresses;		// vector of local IP addresses
+	map<string, uint32_t> m_DenyIP;			// map (IP -> GetTicks to undeny) of denied IP addresses
+	map<string, uint32_t> m_DenyCount;		// map (IP -> deny count) to check whether they should be denied for longer time
 	CLanguage *m_Language;					// language
 	CMap *m_Map;							// the currently loaded map
 	CMap *m_AdminMap;						// the map to use in the admin game
@@ -133,7 +135,9 @@ public:
 	uint32_t m_ReplayBuildNumber;			// config value: replay build number (for saving replays)
 	bool m_TCPNoDelay;						// config value: use Nagle's algorithm or not
 	uint32_t m_MatchMakingMethod;			// config value: the matchmaking method
+	uint32_t m_UpdateList;
 	uint32_t m_MapGameType;                 // config value: the MapGameType overwrite (aka: refresh hack)
+	uint32_t m_Console;						// config value: display console
 
 	CGHost( CConfig *CFG );
 	~CGHost( );
@@ -163,6 +167,9 @@ public:
 	void ExtractScripts( );
 	void LoadIPToCountryData( );
 	void CreateGame( CMap *map, unsigned char gameState, bool saveGame, string gameName, string ownerName, string creatorName, string creatorServer, bool whisper );
+	
+	void DenyIP( string ip, uint32_t duration, string reason );
+	bool CheckDeny( string ip );
 };
 
 #endif

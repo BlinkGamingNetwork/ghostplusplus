@@ -34,7 +34,7 @@
 // CPotentialPlayer
 //
 
-CPotentialPlayer :: CPotentialPlayer( CGameProtocol *nProtocol, CBaseGame *nGame, CTCPSocket *nSocket ) : m_Protocol( nProtocol ), m_Game( nGame ), m_Socket( nSocket ), m_DeleteMe( false ), m_Error( false ), m_IncomingJoinPlayer( NULL )
+CPotentialPlayer :: CPotentialPlayer( CGameProtocol *nProtocol, CBaseGame *nGame, CTCPSocket *nSocket ) : m_Protocol( nProtocol ), m_Game( nGame ), m_Socket( nSocket ), m_DeleteMe( false ), m_Error( false ), m_IncomingJoinPlayer( NULL ), m_ConnectionState( 0 ), m_ConnectionTime( GetTicks( ) )
 {
 
 }
@@ -82,7 +82,15 @@ bool CPotentialPlayer :: Update( void *fd )
 	m_Socket->DoRecv( (fd_set *)fd );
 	ExtractPackets( );
 	ProcessPackets( );
-
+	
+	// make sure we don't keep this socket open forever (disconnect after five seconds)
+	if( m_ConnectionState == 0 && GetTicks( ) - m_ConnectionTime > 5000 )
+	{
+		CONSOLE_Print( "[DENY] Kicking player: REQJOIN not received within five seconds" );
+		m_DeleteMe = true;
+		m_Game->m_GHost->DenyIP( GetExternalIPString( ), 900000, "REQJOIN not received within five seconds" );
+		
+	}
 	// don't call DoSend here because some other players may not have updated yet and may generate a packet for this player
 	// also m_Socket may have been set to NULL during ProcessPackets but we're banking on the fact that m_DeleteMe has been set to true as well so it'll short circuit before dereferencing
 
@@ -185,25 +193,28 @@ void CPotentialPlayer :: Send( BYTEARRAY data )
 //
 
 CGamePlayer :: CGamePlayer( CGameProtocol *nProtocol, CBaseGame *nGame, CTCPSocket *nSocket, unsigned char nPID, string nJoinedRealm, string nName, BYTEARRAY nInternalIP, bool nReserved ) : CPotentialPlayer( nProtocol, nGame, nSocket ),
-m_PID( nPID ), m_Name( nName ), m_InternalIP( nInternalIP ), m_JoinedRealm( nJoinedRealm ), m_TotalPacketsSent( 0 ), m_TotalPacketsReceived( 0 ), m_LeftCode( PLAYERLEAVE_LOBBY ), m_LoginAttempts( 0 ), m_SyncCounter( 0 ), m_JoinTime( GetTime( ) ),
-m_LastMapPartSent( 0 ), m_LastMapPartAcked( 0 ), m_StartedDownloadingTicks( 0 ), m_FinishedLoadingTicks( 0 ), m_StartedLaggingTicks( 0 ), m_StatsSentTime( 0 ), m_StatsDotASentTime( 0 ), m_LastGProxyWaitNoticeSentTime( 0 ), m_Score( -100000.0 ),
+m_PID( nPID ), m_Name( nName ), m_InternalIP( nInternalIP ), m_JoinedRealm( nJoinedRealm ), m_TotalPacketsSent( 0 ), m_TotalPacketsReceived( 0 ), m_Left( 0 ), m_LeftCode( PLAYERLEAVE_LOBBY ), m_LoginAttempts( 0 ), m_SyncCounter( 0 ), m_JoinTime( GetTime( ) ),
+m_LastMapPartSent( 0 ), m_LastMapPartAcked( 0 ), m_StartedDownloadingTicks( 0 ), m_FinishedLoadingTicks( 0 ), m_StartedLaggingTicks( 0 ), m_TotalLaggingTicks( 0 ), m_StatsSentTime( 0 ), m_StatsDotASentTime( 0 ), m_LastGProxyWaitNoticeSentTime( 0 ), m_Score( -100000.0 ),
 m_LoggedIn( false ), m_Spoofed( false ), m_Reserved( nReserved ), m_WhoisShouldBeSent( false ), m_WhoisSent( false ), m_DownloadAllowed( false ), m_DownloadStarted( false ), m_DownloadFinished( false ), m_FinishedLoading( false ), m_Lagging( false ),
-m_DropVote( false ), m_KickVote( false ), m_Muted( false ), m_LeftMessageSent( false ), m_GProxy( false ), m_GProxyDisconnectNoticeSent( false ), m_GProxyReconnectKey( rand( ) ), m_LastGProxyAckTime( 0 )
+m_DropVote( false ), m_KickVote( false ), m_Muted( false ), m_LeftMessageSent( false ), m_GProxy( false ), m_GProxyDisconnectNoticeSent( false ), m_GProxyReconnectKey( rand( ) ), m_LastGProxyAckTime( 0 ), m_AntiSpam( 0 ), m_MutedTime( GetTime() )
 {
-
+	m_ConnectionState = 1;
+	m_IP = GetExternalIPString();
+	m_LastWhois = GetTime();
 }
 
 CGamePlayer :: CGamePlayer( CPotentialPlayer *potential, unsigned char nPID, string nJoinedRealm, string nName, BYTEARRAY nInternalIP, bool nReserved ) : CPotentialPlayer( potential->m_Protocol, potential->m_Game, potential->GetSocket( ) ),
-m_PID( nPID ), m_Name( nName ), m_InternalIP( nInternalIP ), m_JoinedRealm( nJoinedRealm ), m_TotalPacketsSent( 0 ), m_TotalPacketsReceived( 1 ), m_LeftCode( PLAYERLEAVE_LOBBY ), m_LoginAttempts( 0 ), m_SyncCounter( 0 ), m_JoinTime( GetTime( ) ),
-m_LastMapPartSent( 0 ), m_LastMapPartAcked( 0 ), m_StartedDownloadingTicks( 0 ), m_FinishedLoadingTicks( 0 ), m_StartedLaggingTicks( 0 ), m_StatsSentTime( 0 ), m_StatsDotASentTime( 0 ), m_LastGProxyWaitNoticeSentTime( 0 ), m_Score( -100000.0 ),
+m_PID( nPID ), m_Name( nName ), m_InternalIP( nInternalIP ), m_JoinedRealm( nJoinedRealm ), m_TotalPacketsSent( 0 ), m_TotalPacketsReceived( 1 ), m_Left( 0 ), m_LeftCode( PLAYERLEAVE_LOBBY ), m_LoginAttempts( 0 ), m_SyncCounter( 0 ), m_JoinTime( GetTime( ) ),
+m_LastMapPartSent( 0 ), m_LastMapPartAcked( 0 ), m_StartedDownloadingTicks( 0 ), m_FinishedLoadingTicks( 0 ), m_StartedLaggingTicks( 0 ), m_TotalLaggingTicks( 0 ), m_StatsSentTime( 0 ), m_StatsDotASentTime( 0 ), m_LastGProxyWaitNoticeSentTime( 0 ), m_Score( -100000.0 ),
 m_LoggedIn( false ), m_Spoofed( false ), m_Reserved( nReserved ), m_WhoisShouldBeSent( false ), m_WhoisSent( false ), m_DownloadAllowed( false ), m_DownloadStarted( false ), m_DownloadFinished( false ), m_FinishedLoading( false ), m_Lagging( false ),
-m_DropVote( false ), m_KickVote( false ), m_Muted( false ), m_LeftMessageSent( false ), m_GProxy( false ), m_GProxyDisconnectNoticeSent( false ), m_GProxyReconnectKey( rand( ) ), m_LastGProxyAckTime( 0 )
+m_DropVote( false ), m_KickVote( false ), m_Muted( false ), m_LeftMessageSent( false ), m_GProxy( false ), m_GProxyDisconnectNoticeSent( false ), m_GProxyReconnectKey( rand( ) ), m_LastGProxyAckTime( 0 ), m_AntiSpam( 0 ), m_MutedTime( GetTime() )
 {
 	// todotodo: properly copy queued packets to the new player, this just discards them
 	// this isn't a big problem because official Warcraft III clients don't send any packets after the join request until they receive a response
 	// m_Packets = potential->GetPackets( );
-
-
+	m_IP = GetExternalIPString();
+	m_ConnectionState = 1;
+	m_LastWhois = GetTime();
         // hackhack: we initialize m_TotalPacketsReceived to 1 because the CPotentialPlayer must have received a W3GS_REQJOIN before this class was created
 	// to fix this we could move the packet counters to CPotentialPlayer and copy them here
 	// note: we must make sure we never send a packet to a CPotentialPlayer otherwise the send counter will be incorrect too! what a mess this is...
@@ -256,14 +267,17 @@ bool CGamePlayer :: Update( void *fd )
 	// wait 4 seconds after joining before sending the /whois or /w
 	// if we send the /whois too early battle.net may not have caught up with where the player is and return erroneous results
 
-	if( m_WhoisShouldBeSent && !m_Spoofed && !m_WhoisSent && !m_JoinedRealm.empty( ) && GetTime( ) - m_JoinTime >= 4 )
+	if( m_WhoisShouldBeSent && !m_Spoofed && !m_WhoisSent && !m_JoinedRealm.empty( ) && GetTime( ) - m_JoinTime >= 4 ) // && GetTime( ) - m_LastWhois > 1
 	{
 		// todotodo: we could get kicked from battle.net for sending a command with invalid characters, do some basic checking
 
                 for( vector<CBNET *> :: iterator i = m_Game->m_GHost->m_BNETs.begin( ); i != m_Game->m_GHost->m_BNETs.end( ); ++i )
 		{
-			if( (*i)->GetServer( ) == m_JoinedRealm )
+			if( (*i)->GetServer( ) == m_JoinedRealm && m_ConnectionState == 2 )
 			{
+				//NEW SPOOFCHECK
+				//m_Game->SendChat( m_PID, "Spoof check is required, please \"/w " + (*i)->GetUserName() + " sc\" or you will be kicked." );
+
 				if( m_Game->GetGameState( ) == GAME_PUBLIC )
 				{
 					if( (*i)->GetPasswordHashType( ) == "pvpgn" )
@@ -277,6 +291,7 @@ bool CGamePlayer :: Update( void *fd )
 		}
 
 		m_WhoisSent = true;
+		//m_LastWhois = GetTime();
 	}
 
 	// check for socket timeouts
@@ -286,7 +301,53 @@ bool CGamePlayer :: Update( void *fd )
 
 	if( m_Socket && GetTime( ) - m_Socket->GetLastRecv( ) >= 30 )
 		m_Game->EventPlayerDisconnectTimedOut( this );
+	
+	// make sure we're not waiting too long for the first MAPSIZE packet
+	// no ping attack
+	//if( m_Pings.size() == 0 && GetTime( ) - m_JoinTime > 20 && !m_Game->GetGameLoaded() && !m_Game->GetGameLoading() && (!m_DownloadStarted || ( m_DownloadFinished && GetTime( ) - m_FinishedDownloadingTime >= 5 )) ) {
+	//	m_DeleteMe = true;
+	//	SetLeftReason( "PING not received within 10 seconds" );
+	//	SetLeftCode( PLAYERLEAVE_LOBBY );
+	//	m_Game->OpenSlot( m_Game->GetSIDFromPID( GetPID( ) ), false );
+	//	m_Game->m_GHost->DenyIP( GetExternalIPString( ), 60000, "PING not received within 20 seconds" );
+	//}
 
+	// make sure we're not waiting too long for the first MAPSIZE packet
+
+	if( m_ConnectionState == 1 && GetTicks( ) - m_ConnectionTime > 5000 && !m_Game->GetGameLoaded() && !m_Game->GetGameLoading() )
+	{
+		CONSOLE_Print( "[DENY] Kicking player: MAPSIZE not received within five seconds" );
+		m_DeleteMe = true;
+		SetLeftReason( "MAPSIZE not received within five seconds" );
+		SetLeftCode( PLAYERLEAVE_LOBBY );
+		m_Game->OpenSlot( m_Game->GetSIDFromPID( GetPID( ) ), false );
+		m_Game->m_GHost->DenyIP( GetExternalIPString( ), 60000, "MAPSIZE not received within five seconds" );
+	}
+	
+	// disconnect if the player is downloading too slowly
+	
+	if( m_DownloadStarted && !m_DownloadFinished && !m_Game->GetGameLoaded() && !m_Game->GetGameLoading() )
+	{
+		uint32_t downloadingTime = GetTicks( ) - m_StartedDownloadingTicks;
+		
+		if( downloadingTime > 90000 )
+		{
+			CONSOLE_Print( "[DENY] Kicking player: download time too long" );
+			m_DeleteMe = true;
+			SetLeftReason( "download time too long" );
+			SetLeftCode( PLAYERLEAVE_LOBBY );
+			m_Game->OpenSlot( m_Game->GetSIDFromPID( GetPID( ) ), false );
+		}
+		
+		else if( downloadingTime > 3000 && GetLastMapPartAcked( ) / downloadingTime < 10 ) // GetLastMapPartAcked( ) / downloadingTime is B/ms, approximately KB/sec
+		{
+			CONSOLE_Print( "[DENY] Kicking player: download speed too low" );
+			m_DeleteMe = true;
+			SetLeftReason( "download speed too low" );
+			SetLeftCode( PLAYERLEAVE_LOBBY );
+			m_Game->OpenSlot( m_Game->GetSIDFromPID( GetPID( ) ), false );
+		}
+	}
 	// GProxy++ acks
 
 	if( m_GProxy && GetTime( ) - m_LastGProxyAckTime >= 10 )
@@ -312,6 +373,7 @@ bool CGamePlayer :: Update( void *fd )
 	
 	if( m_Error )
 	{
+		m_Game->m_GHost->DenyIP( GetExternalIPString( ), 180000, "player error" );
 		m_Game->EventPlayerDisconnectPlayerError( this );
 		m_Socket->Reset( );
 		return Deleting;
@@ -322,11 +384,13 @@ bool CGamePlayer :: Update( void *fd )
 		if( m_Socket->HasError( ) )
 		{
 			m_Game->EventPlayerDisconnectSocketError( this );
+			m_Game->m_GHost->DenyIP( GetExternalIPString( ), 20000, "socket error" );
 			m_Socket->Reset( );
 		}
 		else if( !m_Socket->GetConnected( ) )
 		{
 			m_Game->EventPlayerDisconnectConnectionClosed( this );
+			m_Game->m_GHost->DenyIP( GetExternalIPString( ), 60000, "connection closed" );
 			m_Socket->Reset( );
 		}
 	}
@@ -434,9 +498,10 @@ void CGamePlayer :: ProcessPackets( )
 
 				if( Action )
 				{
-					// don't delete Action here because the game is going to store it in a queue and delete it later
 					m_Game->EventPlayerAction( this, Action );
 				}
+
+				// don't delete Action here because the game is going to store it in a queue and delete it later
 
 				break;
 
@@ -469,6 +534,9 @@ void CGamePlayer :: ProcessPackets( )
 				break;
 
 			case CGameProtocol :: W3GS_MAPSIZE:
+				m_ConnectionState = 2;
+				m_ConnectionTime = GetTicks( );
+
 				MapSize = m_Protocol->RECEIVE_W3GS_MAPSIZE( Packet->GetData( ), m_Game->m_GHost->m_Map->GetMapSize( ) );
 
 				if( MapSize )
@@ -564,7 +632,12 @@ void CGamePlayer :: Send( BYTEARRAY data )
         ++m_TotalPacketsSent;
 
 	if( m_GProxy && m_Game->GetGameLoaded( ) )
-		m_GProxyBuffer.push( data );
+	{
+		if( m_GProxyBuffer.size( ) <= 2000 )
+			m_GProxyBuffer.push( data );
+		else
+			CONSOLE_Print( "[DENY] Warning: discarding GProxy++ packet from player [" + m_Name + "] due to large queue size (> 2000)" );
+	}
 
 	CPotentialPlayer :: Send( data );
 }

@@ -122,7 +122,7 @@ uint32_t CGHostDB :: GamePlayerCount( string name )
 	return 0;
 }
 
-CDBGamePlayerSummary *CGHostDB :: GamePlayerSummaryCheck( string name )
+CDBGamePlayerSummary *CGHostDB :: GamePlayerSummaryCheck( string name, string server )
 {
 	return NULL;
 }
@@ -142,7 +142,7 @@ uint32_t CGHostDB :: DotAPlayerCount( string name )
 	return 0;
 }
 
-CDBDotAPlayerSummary *CGHostDB :: DotAPlayerSummaryCheck( string name )
+CDBDotAPlayerSummary *CGHostDB :: DotAPlayerSummaryCheck( string name, string server )
 {
 	return NULL;
 }
@@ -252,12 +252,12 @@ CCallableGamePlayerAdd *CGHostDB :: ThreadedGamePlayerAdd( uint32_t gameid, stri
 	return NULL;
 }
 
-CCallableGamePlayerSummaryCheck *CGHostDB :: ThreadedGamePlayerSummaryCheck( string name )
+CCallableGamePlayerSummaryCheck *CGHostDB :: ThreadedGamePlayerSummaryCheck( string name, string realm )
 {
 	return NULL;
 }
 
-CCallableDotAGameAdd *CGHostDB :: ThreadedDotAGameAdd( uint32_t gameid, uint32_t winner, uint32_t min, uint32_t sec )
+CCallableDotAGameAdd *CGHostDB :: ThreadedDotAGameAdd( uint32_t gameid, string mode, uint32_t winner, uint32_t min, uint32_t sec )
 {
 	return NULL;
 }
@@ -267,7 +267,7 @@ CCallableDotAPlayerAdd *CGHostDB :: ThreadedDotAPlayerAdd( uint32_t gameid, uint
 	return NULL;
 }
 
-CCallableDotAPlayerSummaryCheck *CGHostDB :: ThreadedDotAPlayerSummaryCheck( string name )
+CCallableDotAPlayerSummaryCheck *CGHostDB :: ThreadedDotAPlayerSummaryCheck( string name, string server )
 {
 	return NULL;
 }
@@ -479,7 +479,7 @@ CDBGamePlayerSummary :: ~CDBGamePlayerSummary( )
 // CDBDotAGame
 //
 
-CDBDotAGame :: CDBDotAGame( uint32_t nID, uint32_t nGameID, uint32_t nWinner, uint32_t nMin, uint32_t nSec ) : m_ID( nID ), m_GameID( nGameID ), m_Winner( nWinner ), m_Min( nMin ), m_Sec( nSec )
+CDBDotAGame :: CDBDotAGame( uint32_t nID, uint32_t nGameID, string nMode, uint32_t nWinner, uint32_t nMin, uint32_t nSec ) : m_ID( nID ), m_GameID( nGameID ), m_Mode( nMode ), m_Winner( nWinner ), m_Min( nMin ), m_Sec( nSec )
 {
 
 }
@@ -532,7 +532,7 @@ void CDBDotAPlayer :: SetItem( unsigned int i, string item )
 // CDBDotAPlayerSummary
 //
 
-CDBDotAPlayerSummary :: CDBDotAPlayerSummary( string nServer, string nName, uint32_t nTotalGames, uint32_t nTotalWins, uint32_t nTotalLosses, uint32_t nTotalKills, uint32_t nTotalDeaths, uint32_t nTotalCreepKills, uint32_t nTotalCreepDenies, uint32_t nTotalAssists, uint32_t nTotalNeutralKills, uint32_t nTotalTowerKills, uint32_t nTotalRaxKills, uint32_t nTotalCourierKills ) : m_Server( nServer ), m_Name( nName ), m_TotalGames( nTotalGames ), m_TotalWins( nTotalWins ), m_TotalLosses( nTotalLosses ), m_TotalKills( nTotalKills ), m_TotalDeaths( nTotalDeaths ), m_TotalCreepKills( nTotalCreepKills ), m_TotalCreepDenies( nTotalCreepDenies ), m_TotalAssists( nTotalAssists ), m_TotalNeutralKills( nTotalNeutralKills ), m_TotalTowerKills( nTotalTowerKills ), m_TotalRaxKills( nTotalRaxKills ), m_TotalCourierKills( nTotalCourierKills )
+CDBDotAPlayerSummary :: CDBDotAPlayerSummary( string nServer, string nName, uint32_t nTotalGames, uint32_t nTotalWins, uint32_t nTotalLosses, uint32_t nTotalKills, uint32_t nTotalDeaths, uint32_t nTotalCreepKills, uint32_t nTotalCreepDenies, uint32_t nTotalAssists, uint32_t nTotalNeutralKills, uint32_t nTotalTowerKills, uint32_t nTotalRaxKills, uint32_t nTotalCourierKills, uint32_t nScore ) : m_Server( nServer ), m_Name( nName ), m_TotalGames( nTotalGames ), m_TotalWins( nTotalWins ), m_TotalLosses( nTotalLosses ), m_TotalKills( nTotalKills ), m_TotalDeaths( nTotalDeaths ), m_TotalCreepKills( nTotalCreepKills ), m_TotalCreepDenies( nTotalCreepDenies ), m_TotalAssists( nTotalAssists ), m_TotalNeutralKills( nTotalNeutralKills ), m_TotalTowerKills( nTotalTowerKills ), m_TotalRaxKills( nTotalRaxKills ), m_TotalCourierKills( nTotalCourierKills ), m_Score( nScore )
 {
 
 }

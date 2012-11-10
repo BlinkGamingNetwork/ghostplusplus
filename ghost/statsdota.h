@@ -32,9 +32,10 @@ class CStatsDOTA : public CStats
 private:
 	CDBDotAPlayer *m_Players[12];
 	uint32_t m_Winner;
+	string m_Mode;
 	uint32_t m_Min;
 	uint32_t m_Sec;
-
+	uint32_t m_LeaverKills[12];
 public:
 	CStatsDOTA( CBaseGame *nGame );
 	virtual ~CStatsDOTA( );

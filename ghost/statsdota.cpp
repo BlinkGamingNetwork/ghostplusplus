@@ -31,12 +31,14 @@
 // CStatsDOTA
 //
 
-CStatsDOTA :: CStatsDOTA( CBaseGame *nGame ) : CStats( nGame ), m_Winner( 0 ), m_Min( 0 ), m_Sec( 0 )
+CStatsDOTA :: CStatsDOTA( CBaseGame *nGame ) : CStats( nGame ), m_Winner( 0 ), m_Mode( "" ), m_Min( 0 ), m_Sec( 0 )
 {
 	CONSOLE_Print( "[STATSDOTA] using dota stats" );
 
-        for( unsigned int i = 0; i < 12; ++i )
-		m_Players[i] = NULL;
+        for( unsigned int i = 0; i < 12; ++i ) {
+			m_Players[i] = NULL;
+			m_LeaverKills[i] = 0;
+		}
 }
 
 CStatsDOTA :: ~CStatsDOTA( )
@@ -115,6 +117,11 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 										CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] the Sentinel killed player [" + Victim->GetName( ) + "]" );
 									else if( ValueInt == 6 )
 										CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] the Scourge killed player [" + Victim->GetName( ) + "]" );
+								}
+								else if ( Victim && ! Killer )
+								{
+									m_LeaverKills[ValueInt]++;	
+									CONSOLE_Print( "[ANTIFARM] player [" + Killer->GetName() + "] killed a leaver. Kill not recorded.");
 								}
 							}
 							else if( KeyString.size( ) >= 8 && KeyString.substr( 0, 7 ) == "Courier" )
@@ -258,6 +265,11 @@ bool CStatsDOTA :: ProcessAction( CIncomingAction *Action )
 							{
 								// a player disconnected
 							}
+							else if( KeyString.size( ) >= 5 && KeyString.substr( 0, 4 ) == "Mode" ) {
+								m_Mode = KeyString.substr( 4, KeyString.size( )-4 );
+
+								CONSOLE_Print( "[STATSDOTA: " + m_Game->GetGameName( ) + "] the game mode is set to [" + m_Mode + "]" );
+							}
 						}
 						else if( DataString == "Global" )
 						{
@@ -383,7 +395,7 @@ void CStatsDOTA :: Save( CGHost *GHost, CGHostDB *DB, uint32_t GameID )
 
 		// save the dotagame
 
-		GHost->m_Callables.push_back( DB->ThreadedDotAGameAdd( GameID, m_Winner, m_Min, m_Sec ) );
+		GHost->m_Callables.push_back( DB->ThreadedDotAGameAdd( GameID, m_Mode, m_Winner, m_Min, m_Sec ) );
 
 		// check for invalid colours and duplicates
 		// this can only happen if DotA sends us garbage in the "id" value but we should check anyway

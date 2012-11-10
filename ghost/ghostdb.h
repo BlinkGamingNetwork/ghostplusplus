@@ -88,11 +88,11 @@ public:
 	virtual uint32_t GameAdd( string server, string map, string gamename, string ownername, uint32_t duration, uint32_t gamestate, string creatorname, string creatorserver );
 	virtual uint32_t GamePlayerAdd( uint32_t gameid, string name, string ip, uint32_t spoofed, string spoofedrealm, uint32_t reserved, uint32_t loadingtime, uint32_t left, string leftreason, uint32_t team, uint32_t colour );
 	virtual uint32_t GamePlayerCount( string name );
-	virtual CDBGamePlayerSummary *GamePlayerSummaryCheck( string name );
+	virtual CDBGamePlayerSummary *GamePlayerSummaryCheck( string name, string server );
 	virtual uint32_t DotAGameAdd( uint32_t gameid, uint32_t winner, uint32_t min, uint32_t sec );
 	virtual uint32_t DotAPlayerAdd( uint32_t gameid, uint32_t colour, uint32_t kills, uint32_t deaths, uint32_t creepkills, uint32_t creepdenies, uint32_t assists, uint32_t gold, uint32_t neutralkills, string item1, string item2, string item3, string item4, string item5, string item6, string hero, uint32_t newcolour, uint32_t towerkills, uint32_t raxkills, uint32_t courierkills );
 	virtual uint32_t DotAPlayerCount( string name );
-	virtual CDBDotAPlayerSummary *DotAPlayerSummaryCheck( string name );
+	virtual CDBDotAPlayerSummary *DotAPlayerSummaryCheck( string name, string server );
 	virtual string FromCheck( uint32_t ip );
 	virtual bool FromAdd( uint32_t ip1, uint32_t ip2, string country );
 	virtual bool DownloadAdd( string map, uint32_t mapsize, string name, string ip, uint32_t spoofed, string spoofedrealm, uint32_t downloadtime );
@@ -117,10 +117,10 @@ public:
 	virtual CCallableBanList *ThreadedBanList( string server );
 	virtual CCallableGameAdd *ThreadedGameAdd( string server, string map, string gamename, string ownername, uint32_t duration, uint32_t gamestate, string creatorname, string creatorserver );
 	virtual CCallableGamePlayerAdd *ThreadedGamePlayerAdd( uint32_t gameid, string name, string ip, uint32_t spoofed, string spoofedrealm, uint32_t reserved, uint32_t loadingtime, uint32_t left, string leftreason, uint32_t team, uint32_t colour );
-	virtual CCallableGamePlayerSummaryCheck *ThreadedGamePlayerSummaryCheck( string name );
-	virtual CCallableDotAGameAdd *ThreadedDotAGameAdd( uint32_t gameid, uint32_t winner, uint32_t min, uint32_t sec );
+	virtual CCallableGamePlayerSummaryCheck *ThreadedGamePlayerSummaryCheck( string name, string server );
+	virtual CCallableDotAGameAdd *ThreadedDotAGameAdd( uint32_t gameid, string mode, uint32_t winner, uint32_t min, uint32_t sec );
 	virtual CCallableDotAPlayerAdd *ThreadedDotAPlayerAdd( uint32_t gameid, uint32_t colour, uint32_t kills, uint32_t deaths, uint32_t creepkills, uint32_t creepdenies, uint32_t assists, uint32_t gold, uint32_t neutralkills, string item1, string item2, string item3, string item4, string item5, string item6, string hero, uint32_t newcolour, uint32_t towerkills, uint32_t raxkills, uint32_t courierkills );
-	virtual CCallableDotAPlayerSummaryCheck *ThreadedDotAPlayerSummaryCheck( string name );
+	virtual CCallableDotAPlayerSummaryCheck *ThreadedDotAPlayerSummaryCheck( string name, string server );
 	virtual CCallableDownloadAdd *ThreadedDownloadAdd( string map, uint32_t mapsize, string name, string ip, uint32_t spoofed, string spoofedrealm, uint32_t downloadtime );
 	virtual CCallableScoreCheck *ThreadedScoreCheck( string category, string name, string server );
 	virtual CCallableW3MMDPlayerAdd *ThreadedW3MMDPlayerAdd( string category, uint32_t gameid, uint32_t pid, string name, string flag, uint32_t leaver, uint32_t practicing );
@@ -394,13 +394,15 @@ class CCallableGamePlayerSummaryCheck : virtual public CBaseCallable
 {
 protected:
 	string m_Name;
+	string m_Server;
 	CDBGamePlayerSummary *m_Result;
 
 public:
-	CCallableGamePlayerSummaryCheck( string nName ) : CBaseCallable( ), m_Name( nName ), m_Result( NULL ) { }
+	CCallableGamePlayerSummaryCheck( string nName, string nServer ) : CBaseCallable( ), m_Name( nName ), m_Server( nServer ), m_Result( NULL ) { }
 	virtual ~CCallableGamePlayerSummaryCheck( );
 
 	virtual string GetName( )								{ return m_Name; }
+	virtual string GetServer( )								{ return m_Server; }
 	virtual CDBGamePlayerSummary *GetResult( )				{ return m_Result; }
 	virtual void SetResult( CDBGamePlayerSummary *nResult )	{ m_Result = nResult; }
 };
@@ -409,13 +411,14 @@ class CCallableDotAGameAdd : virtual public CBaseCallable
 {
 protected:
 	uint32_t m_GameID;
+	string m_Mode;
 	uint32_t m_Winner;
 	uint32_t m_Min;
 	uint32_t m_Sec;
 	uint32_t m_Result;
 
 public:
-	CCallableDotAGameAdd( uint32_t nGameID, uint32_t nWinner, uint32_t nMin, uint32_t nSec ) : CBaseCallable( ), m_GameID( nGameID ), m_Winner( nWinner ), m_Min( nMin ), m_Sec( nSec ), m_Result( 0 ) { }
+	CCallableDotAGameAdd( uint32_t nGameID, string nMode, uint32_t nWinner, uint32_t nMin, uint32_t nSec ) : CBaseCallable( ), m_GameID( nGameID ), m_Mode( nMode ), m_Winner( nWinner ), m_Min( nMin ), m_Sec( nSec ), m_Result( 0 ) { }
 	virtual ~CCallableDotAGameAdd( );
 
 	virtual uint32_t GetResult( )				{ return m_Result; }
@@ -459,13 +462,15 @@ class CCallableDotAPlayerSummaryCheck : virtual public CBaseCallable
 {
 protected:
 	string m_Name;
+	string m_Server;
 	CDBDotAPlayerSummary *m_Result;
 
 public:
-	CCallableDotAPlayerSummaryCheck( string nName ) : CBaseCallable( ), m_Name( nName ), m_Result( NULL ) { }
+	CCallableDotAPlayerSummaryCheck( string nName, string nServer ) : CBaseCallable( ), m_Name( nName ), m_Server( nServer ), m_Result( NULL ) { }
 	virtual ~CCallableDotAPlayerSummaryCheck( );
 
 	virtual string GetName( )								{ return m_Name; }
+	virtual string GetServer( )								{ return m_Server; }
 	virtual CDBDotAPlayerSummary *GetResult( )				{ return m_Result; }
 	virtual void SetResult( CDBDotAPlayerSummary *nResult )	{ m_Result = nResult; }
 };
@@ -705,16 +710,18 @@ class CDBDotAGame
 private:
 	uint32_t m_ID;
 	uint32_t m_GameID;
+	string m_Mode;
 	uint32_t m_Winner;
 	uint32_t m_Min;
 	uint32_t m_Sec;
 
 public:
-	CDBDotAGame( uint32_t nID, uint32_t nGameID, uint32_t nWinner, uint32_t nMin, uint32_t nSec );
+	CDBDotAGame( uint32_t nID, uint32_t nGameID, string nMode, uint32_t nWinner, uint32_t nMin, uint32_t nSec );
 	~CDBDotAGame( );
 
 	uint32_t GetID( )		{ return m_ID; }
 	uint32_t GetGameID( )	{ return m_GameID; }
+	string GetMode( )		{ return m_Mode; }
 	uint32_t GetWinner( )	{ return m_Winner; }
 	uint32_t GetMin( )		{ return m_Min; }
 	uint32_t GetSec( )		{ return m_Sec; }
@@ -803,9 +810,10 @@ private:
 	uint32_t m_TotalTowerKills;		// total number of tower kills
 	uint32_t m_TotalRaxKills;		// total number of rax kills
 	uint32_t m_TotalCourierKills;	// total number of courier kills
+	uint32_t m_Score;
 
 public:
-	CDBDotAPlayerSummary( string nServer, string nName, uint32_t nTotalGames, uint32_t nTotalWins, uint32_t nTotalLosses, uint32_t nTotalKills, uint32_t nTotalDeaths, uint32_t nTotalCreepKills, uint32_t nTotalCreepDenies, uint32_t nTotalAssists, uint32_t nTotalNeutralKills, uint32_t nTotalTowerKills, uint32_t nTotalRaxKills, uint32_t nTotalCourierKills );
+	CDBDotAPlayerSummary( string nServer, string nName, uint32_t nTotalGames, uint32_t nTotalWins, uint32_t nTotalLosses, uint32_t nTotalKills, uint32_t nTotalDeaths, uint32_t nTotalCreepKills, uint32_t nTotalCreepDenies, uint32_t nTotalAssists, uint32_t nTotalNeutralKills, uint32_t nTotalTowerKills, uint32_t nTotalRaxKills, uint32_t nTotalCourierKills, uint32_t nScore );
 	~CDBDotAPlayerSummary( );
 
 	string GetServer( )					{ return m_Server; }
@@ -822,6 +830,7 @@ public:
 	uint32_t GetTotalTowerKills( )		{ return m_TotalTowerKills; }
 	uint32_t GetTotalRaxKills( )		{ return m_TotalRaxKills; }
 	uint32_t GetTotalCourierKills( )	{ return m_TotalCourierKills; }
+	uint32_t GetScore( )				{ return m_Score; }
 
 	float GetAvgKills( )				{ return m_TotalGames > 0 ? (float)m_TotalKills / m_TotalGames : 0; }
 	float GetAvgDeaths( )				{ return m_TotalGames > 0 ? (float)m_TotalDeaths / m_TotalGames : 0; }

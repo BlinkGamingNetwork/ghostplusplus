@@ -47,6 +47,10 @@ protected:
 	bool m_Error;
 	string m_ErrorString;
 	CIncomingJoinPlayer *m_IncomingJoinPlayer;
+	
+	uint32_t m_ConnectionState;	// zero if no packets received (wait REQJOIN), one if only REQJOIN received (wait MAPSIZE), two otherwise
+	uint32_t m_ConnectionTime;	// last time the player did something relating to connection state
+
 
 public:
 	CPotentialPlayer( CGameProtocol *nProtocol, CBaseGame *nGame, CTCPSocket *nSocket );
@@ -85,6 +89,7 @@ private:
 	unsigned char m_PID;
 	string m_Name;								// the player's name
 	BYTEARRAY m_InternalIP;						// the player's internal IP address as reported by the player when connecting
+	string m_IP;
 	vector<uint32_t> m_Pings;					// store the last few (20) pings received so we can take an average
 	queue<uint32_t> m_CheckSums;				// the last few checksums the player has sent (for detecting desyncs)
 	string m_LeftReason;						// the reason the player left the game
@@ -92,6 +97,7 @@ private:
 	string m_JoinedRealm;						// the realm the player joined on (probable, can be spoofed)
 	uint32_t m_TotalPacketsSent;
 	uint32_t m_TotalPacketsReceived;
+	uint32_t m_Left;
 	uint32_t m_LeftCode;						// the code to be sent in W3GS_PLAYERLEAVE_OTHERS for why this player left the game
 	uint32_t m_LoginAttempts;					// the number of attempts to login (used with CAdminGame only)
 	uint32_t m_SyncCounter;						// the number of keepalive packets received from this player
@@ -102,6 +108,7 @@ private:
 	uint32_t m_FinishedDownloadingTime;			// GetTime when the player finished downloading the map
 	uint32_t m_FinishedLoadingTicks;			// GetTicks when the player finished loading the game
 	uint32_t m_StartedLaggingTicks;				// GetTicks when the player started lagging
+	uint32_t m_TotalLaggingTicks;				// total ticks that the player has been lagging in the game
 	uint32_t m_StatsSentTime;					// GetTime when we sent this player's stats to the chat (to prevent players from spamming !stats)
 	uint32_t m_StatsDotASentTime;				// GetTime when we sent this player's dota stats to the chat (to prevent players from spamming !statsdota)
 	uint32_t m_LastGProxyWaitNoticeSentTime;
@@ -112,6 +119,7 @@ private:
 	bool m_Reserved;							// if the player is reserved (VIP) or not
 	bool m_WhoisShouldBeSent;					// if a battle.net /whois should be sent for this player or not
 	bool m_WhoisSent;							// if we've sent a battle.net /whois for this player yet (for spoof checking)
+	uint32_t m_LastWhois;						// NEW spoof method
 	bool m_DownloadAllowed;						// if we're allowed to download the map or not (used with permission based map downloads)
 	bool m_DownloadStarted;						// if we've started downloading the map or not
 	bool m_DownloadFinished;					// if we've finished downloading the map or not
@@ -120,6 +128,8 @@ private:
 	bool m_DropVote;							// if the player voted to drop the laggers or not (on the lag screen)
 	bool m_KickVote;							// if the player voted to kick a player or not
 	bool m_Muted;								// if the player is muted or not
+	uint32_t m_MutedTime;						// MutedTime
+	uint32_t m_AntiSpam;						// AntiSpam
 	bool m_LeftMessageSent;						// if the playerleave message has been sent or not
 	bool m_GProxy;								// if the player is using GProxy++
 	bool m_GProxyDisconnectNoticeSent;			// if a disconnection notice has been sent or not when using GProxy++
@@ -135,12 +145,14 @@ public:
 	unsigned char GetPID( )						{ return m_PID; }
 	string GetName( )							{ return m_Name; }
 	BYTEARRAY GetInternalIP( )					{ return m_InternalIP; }
+	string GetIP( )								{ return m_IP; }
 	unsigned int GetNumPings( )					{ return m_Pings.size( ); }
 	unsigned int GetNumCheckSums( )				{ return m_CheckSums.size( ); }
 	queue<uint32_t> *GetCheckSums( )			{ return &m_CheckSums; }
 	string GetLeftReason( )						{ return m_LeftReason; }
 	string GetSpoofedRealm( )					{ return m_SpoofedRealm; }
 	string GetJoinedRealm( )					{ return m_JoinedRealm; }
+	uint32_t GetLeft( )							{ return m_Left; }
 	uint32_t GetLeftCode( )						{ return m_LeftCode; }
 	uint32_t GetLoginAttempts( )				{ return m_LoginAttempts; }
 	uint32_t GetSyncCounter( )					{ return m_SyncCounter; }
@@ -151,6 +163,7 @@ public:
 	uint32_t GetFinishedDownloadingTime( )		{ return m_FinishedDownloadingTime; }
 	uint32_t GetFinishedLoadingTicks( )			{ return m_FinishedLoadingTicks; }
 	uint32_t GetStartedLaggingTicks( )			{ return m_StartedLaggingTicks; }
+	uint32_t GetTotalLaggingTicks( )			{ return m_TotalLaggingTicks; }
 	uint32_t GetStatsSentTime( )				{ return m_StatsSentTime; }
 	uint32_t GetStatsDotASentTime( )			{ return m_StatsDotASentTime; }
 	uint32_t GetLastGProxyWaitNoticeSentTime( )	{ return m_LastGProxyWaitNoticeSentTime; }
@@ -169,11 +182,14 @@ public:
 	bool GetDropVote( )							{ return m_DropVote; }
 	bool GetKickVote( )							{ return m_KickVote; }
 	bool GetMuted( )							{ return m_Muted; }
+	uint32_t GetMutedTime( )					{ return m_MutedTime; }
+	uint32_t GetAntiSpam( )						{ return m_AntiSpam; }
 	bool GetLeftMessageSent( )					{ return m_LeftMessageSent; }
 	bool GetGProxy( )							{ return m_GProxy; }
 	bool GetGProxyDisconnectNoticeSent( )		{ return m_GProxyDisconnectNoticeSent; }
 	uint32_t GetGProxyReconnectKey( )			{ return m_GProxyReconnectKey; }
 
+	void SetLeft( uint32_t nLeft )													{ m_Left = nLeft; }
 	void SetLeftReason( string nLeftReason )										{ m_LeftReason = nLeftReason; }
 	void SetSpoofedRealm( string nSpoofedRealm )									{ m_SpoofedRealm = nSpoofedRealm; }
 	void SetLeftCode( uint32_t nLeftCode )											{ m_LeftCode = nLeftCode; }
@@ -184,6 +200,7 @@ public:
 	void SetStartedDownloadingTicks( uint32_t nStartedDownloadingTicks )			{ m_StartedDownloadingTicks = nStartedDownloadingTicks; }
 	void SetFinishedDownloadingTime( uint32_t nFinishedDownloadingTime )			{ m_FinishedDownloadingTime = nFinishedDownloadingTime; }
 	void SetStartedLaggingTicks( uint32_t nStartedLaggingTicks )					{ m_StartedLaggingTicks = nStartedLaggingTicks; }
+	void SetTotalLaggingTicks( uint32_t nTotalLaggingTicks )						{ m_TotalLaggingTicks = nTotalLaggingTicks; }
 	void SetStatsSentTime( uint32_t nStatsSentTime )								{ m_StatsSentTime = nStatsSentTime; }
 	void SetStatsDotASentTime( uint32_t nStatsDotASentTime )						{ m_StatsDotASentTime = nStatsDotASentTime; }
 	void SetLastGProxyWaitNoticeSentTime( uint32_t nLastGProxyWaitNoticeSentTime )	{ m_LastGProxyWaitNoticeSentTime = nLastGProxyWaitNoticeSentTime; }
@@ -199,6 +216,9 @@ public:
 	void SetDropVote( bool nDropVote )												{ m_DropVote = nDropVote; }
 	void SetKickVote( bool nKickVote )												{ m_KickVote = nKickVote; }
 	void SetMuted( bool nMuted )													{ m_Muted = nMuted; }
+	void SetMutedTime( uint32_t nMutedTime )										{ m_MutedTime = nMutedTime; }
+	void AddAntiSpam( uint32_t nAntiSpam )											{ m_AntiSpam += nAntiSpam; }
+	void SetAntiSpam( uint32_t nAntiSpam )											{ m_AntiSpam = nAntiSpam; }
 	void SetLeftMessageSent( bool nLeftMessageSent )								{ m_LeftMessageSent = nLeftMessageSent; }
 	void SetGProxyDisconnectNoticeSent( bool nGProxyDisconnectNoticeSent )			{ m_GProxyDisconnectNoticeSent = nGProxyDisconnectNoticeSent; }
 

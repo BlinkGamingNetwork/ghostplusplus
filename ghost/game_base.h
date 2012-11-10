@@ -51,6 +51,7 @@ protected:
 	vector<CGameSlot> m_Slots;						// vector of slots
 	vector<CPotentialPlayer *> m_Potentials;		// vector of potential players (connections that haven't sent a W3GS_REQJOIN packet yet)
 	vector<CGamePlayer *> m_Players;				// vector of players
+	vector<CGamePlayer *> m_DeletedPlayers;
 	vector<CCallableScoreCheck *> m_ScoreChecks;
 	queue<CIncomingAction *> m_Actions;				// queue of actions to be sent
 	vector<string> m_Reserved;						// vector of player names with reserved slots (from the !hold command)
@@ -116,6 +117,8 @@ protected:
 	bool m_RefreshError;							// if there was an error refreshing the game
 	bool m_RefreshRehosted;							// if we just rehosted and are waiting for confirmation that it was successful
 	bool m_MuteAll;									// if we should stop forwarding ingame chat messages targeted for all players or not
+	uint32_t m_MuteAllTime;							// auto unmute after 30 seconds
+	uint32_t m_AntiSpamTime;						// Decrease by 1 every second
 	bool m_MuteLobby;								// if we should stop forwarding lobby chat messages
 	bool m_CountDownStarted;						// if the game start countdown has started or not
 	bool m_GameLoading;								// if the game is currently loading or not
@@ -125,6 +128,7 @@ protected:
 	bool m_AutoSave;								// if we should auto save the game before someone disconnects
 	bool m_MatchMaking;								// if matchmaking mode is enabled
 	bool m_LocalAdminMessages;						// if local admin messages should be relayed or not
+	uint32_t m_Rehost;								// time lf list !priv, !pub
 
 public:
 	CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHostPort, unsigned char nGameState, string nGameName, string nOwnerName, string nCreatorName, string nCreatorServer );
@@ -150,6 +154,7 @@ public:
 	virtual bool GetGameLoading( )					{ return m_GameLoading; }
 	virtual bool GetGameLoaded( )					{ return m_GameLoaded; }
 	virtual bool GetLagging( )						{ return m_Lagging; }
+	virtual CMap *GetMap( )							{ return m_Map; }
 
 	virtual void SetEnforceSlots( vector<CGameSlot> nEnforceSlots )		{ m_EnforceSlots = nEnforceSlots; }
 	virtual void SetEnforcePlayers( vector<PIDPlayer> nEnforcePlayers )	{ m_EnforcePlayers = nEnforcePlayers; }
@@ -173,6 +178,7 @@ public:
 
 	virtual unsigned int SetFD( void *fd, void *send_fd, int *nfds );
 	virtual bool Update( void *fd, void *send_fd );
+	virtual string UpdateList( );
 	virtual void UpdatePost( void *send_fd );
 
 	// generic functions to send packets to players
@@ -211,7 +217,7 @@ public:
 	virtual void EventPlayerJoinedWithScore( CPotentialPlayer *potential, CIncomingJoinPlayer *joinPlayer, double score );
 	virtual void EventPlayerLeft( CGamePlayer *player, uint32_t reason );
 	virtual void EventPlayerLoaded( CGamePlayer *player );
-	virtual bool EventPlayerAction( CGamePlayer *player, CIncomingAction *action );
+	virtual void EventPlayerAction( CGamePlayer *player, CIncomingAction *action );
 	virtual void EventPlayerKeepAlive( CGamePlayer *player, uint32_t checkSum );
 	virtual void EventPlayerChatToHost( CGamePlayer *player, CIncomingChatPlayer *chatPlayer );
 	virtual bool EventPlayerBotCommand( CGamePlayer *player, string command, string payload );
@@ -233,6 +239,7 @@ public:
 
 	virtual unsigned char GetSIDFromPID( unsigned char PID );
 	virtual CGamePlayer *GetPlayerFromPID( unsigned char PID );
+	virtual CGamePlayer *GetPlayerFromPID2( unsigned char PID );
 	virtual CGamePlayer *GetPlayerFromSID( unsigned char SID );
 	virtual CGamePlayer *GetPlayerFromName( string name, bool sensitive );
 	virtual uint32_t GetPlayerFromNamePartial( string name, CGamePlayer **player );
@@ -241,6 +248,7 @@ public:
 	virtual unsigned char GetNewColour( );
 	virtual BYTEARRAY GetPIDs( );
 	virtual BYTEARRAY GetPIDs( unsigned char excludePID );
+	virtual BYTEARRAY GetPIDSpoofed( );
 	virtual unsigned char GetHostPID( );
 	virtual unsigned char GetEmptySlot( bool reserved );
 	virtual unsigned char GetEmptySlot( unsigned char team, unsigned char PID );

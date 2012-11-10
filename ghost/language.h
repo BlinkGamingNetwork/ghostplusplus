@@ -94,8 +94,8 @@ public:
 	string SettingLatencyToMaximum( string max );
 	string SettingLatencyTo( string latency );
 	string KickingPlayersWithPingsGreaterThan( string total, string ping );
-	string HasPlayedGamesWithThisBot( string user, string firstgame, string lastgame, string totalgames, string avgloadingtime, string avgstay );
-	string HasntPlayedGamesWithThisBot( string user );
+	string HasPlayedGamesWithThisBot( string user, string server, string firstgame, string lastgame, string totalgames, string avgloadingtime, string avgstay );
+	string HasntPlayedGamesWithThisBot( string user, string server );
 	string AutokickingPlayerForExcessivePing( string victim, string ping );
 	string SpoofCheckAcceptedFor( string server, string user );
 	string PlayersNotYetSpoofChecked( string notspoofchecked );
@@ -107,8 +107,8 @@ public:
 	string ShortestLoadByPlayer( string user, string loadingtime );
 	string LongestLoadByPlayer( string user, string loadingtime );
 	string YourLoadingTimeWas( string loadingtime );
-	string HasPlayedDotAGamesWithThisBot( string user, string totalgames, string totalwins, string totallosses, string totalkills, string totaldeaths, string totalcreepkills, string totalcreepdenies, string totalassists, string totalneutralkills, string totaltowerkills, string totalraxkills, string totalcourierkills, string avgkills, string avgdeaths, string avgcreepkills, string avgcreepdenies, string avgassists, string avgneutralkills, string avgtowerkills, string avgraxkills, string avgcourierkills );
-	string HasntPlayedDotAGamesWithThisBot( string user );
+	string HasPlayedDotAGamesWithThisBot( string user, string server, string totalgames, string totalwins, string totallosses, string totalkills, string totaldeaths, string totalcreepkills, string totalcreepdenies, string totalassists, string totalneutralkills, string totaltowerkills, string totalraxkills, string totalcourierkills, string avgkills, string avgdeaths, string avgcreepkills, string avgcreepdenies, string avgassists, string avgneutralkills, string avgtowerkills, string avgraxkills, string avgcourierkills, string score );
+	string HasntPlayedDotAGamesWithThisBot( string user, string server );
 	string WasKickedForReservedPlayer( string reserved );
 	string WasKickedForOwnerPlayer( string owner );
 	string WasKickedByPlayer( string user );
