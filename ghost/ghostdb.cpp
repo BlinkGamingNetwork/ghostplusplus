@@ -112,9 +112,9 @@ uint32_t CGHostDB :: GameAdd( string server, string map, string gamename, string
 	return 0;
 }
 
-string CGHostDB :: GameUpdate( string map, string gamename, string ownername, string creatorname, uint32_t players, string usernames, uint32_t slotsTotal, uint32_t totalGames, uint32_t totalPlayers, bool add )
+bool CGHostDB :: GameUpdate( uint32_t hostcounter, bool lobby, string map_type, uint32_t duration, string gamename, string ownername, string creatorname, string map, uint32_t players, uint32_t total, string usernames, string servers, string pings, string ips, string teams, string colors, string lefttimes, string leftreasons )
 {
-	return "";
+	return false;
 }
 
 uint32_t CGHostDB :: GamePlayerAdd( uint32_t gameid, string name, string ip, uint32_t spoofed, string spoofedrealm, uint32_t reserved, uint32_t loadingtime, uint32_t left, string leftreason, uint32_t team, uint32_t colour )
@@ -252,7 +252,7 @@ CCallableGameAdd *CGHostDB :: ThreadedGameAdd( string server, string map, string
 	return NULL;
 }
 
-CCallableGameUpdate *CGHostDB :: ThreadedGameUpdate( string map, string gamename, string ownername, string creatorname, uint32_t players, string usernames, uint32_t slotsTotal, uint32_t totalGames, uint32_t totalPlayers, bool add )
+CCallableGameUpdate *CGHostDB :: ThreadedGameUpdate( uint32_t hostcounter, bool lobby, string map_type, uint32_t duration, string gamename, string ownername, string creatorname, string map, uint32_t players, uint32_t total, string usernames, string servers, string pings, string ips, string teams, string colors, string lefttimes, string leftreasons )
 {
 	return NULL;
 }

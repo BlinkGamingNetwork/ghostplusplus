@@ -309,7 +309,8 @@ void CGame :: EventPlayerDeleted( CGamePlayer *player )
 			Team = m_Slots[SID].GetTeam( );
 			Colour = m_Slots[SID].GetColour( );
 		}
-
+		
+		player->SetLeft( m_GameTicks / 1000 );
 		m_DBGamePlayers.push_back( new CDBGamePlayer( 0, 0, player->GetName( ), player->GetExternalIPString( ), player->GetSpoofed( ) ? 1 : 0, player->GetSpoofedRealm( ), player->GetReserved( ) ? 1 : 0, player->GetFinishedLoading( ) ? player->GetFinishedLoadingTicks( ) - m_StartedLoadingTicks : 0, m_GameTicks / 1000, player->GetLeftReason( ), Team, Colour ) );
 
 		// also keep track of the last player to leave for the !banlast command
@@ -1233,6 +1234,9 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 						SendAllChat( m_GHost->m_Language->SettingGameOwnerTo( User ) );
 						m_OwnerName = User;
 					}
+					
+					if( m_GHost->m_GamelistAutoRefresh )
+						DoGameUpdate( false );
 				}
 				else
 					SendAllChat( m_GHost->m_Language->UnableToSetGameOwner( m_OwnerName ) );

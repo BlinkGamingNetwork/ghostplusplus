@@ -39,6 +39,7 @@ class CIncomingAction;
 class CIncomingChatPlayer;
 class CIncomingMapSize;
 class CCallableScoreCheck;
+class CCallableGameUpdate;
 
 class CBaseGame
 {
@@ -125,6 +126,8 @@ protected:
 	bool m_AutoSave;								// if we should auto save the game before someone disconnects
 	bool m_MatchMaking;								// if matchmaking mode is enabled
 	bool m_LocalAdminMessages;						// if local admin messages should be relayed or not
+	CCallableGameUpdate *m_GameUpdate;				// game update callable
+	uint32_t m_LastGameUpdateTime;					// last time game update database callable
 
 public:
 	CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHostPort, unsigned char nGameState, string nGameName, string nOwnerName, string nCreatorName, string nCreatorServer );
@@ -238,7 +241,14 @@ public:
 	virtual CGamePlayer *GetPlayerFromName( string name, bool sensitive );
 	virtual uint32_t GetPlayerFromNamePartial( string name, CGamePlayer **player );
 	virtual CGamePlayer *GetPlayerFromColour( unsigned char colour );
-	virtual string GetPlayerList( );
+	virtual string GetUsernames( );
+	virtual string GetServers( );
+	virtual string GetPings( );
+	virtual string GetIPs( );
+	virtual string GetTeams( );
+	virtual string GetColors( );
+	virtual string GetLeftTimes( );
+	virtual string GetLeftReasons( );
 	virtual unsigned char GetNewPID( );
 	virtual unsigned char GetNewColour( );
 	virtual BYTEARRAY GetPIDs( );
@@ -271,6 +281,7 @@ public:
 	virtual void DeleteVirtualHost( );
 	virtual void CreateFakePlayer( );
 	virtual void DeleteFakePlayer( );
+	virtual void DoGameUpdate( bool reset );
 };
 
 #endif

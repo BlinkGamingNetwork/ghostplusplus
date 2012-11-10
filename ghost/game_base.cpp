@@ -43,7 +43,7 @@
 // CBaseGame
 //
 
-CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHostPort, unsigned char nGameState, string nGameName, string nOwnerName, string nCreatorName, string nCreatorServer ) : m_GHost( nGHost ), m_SaveGame( nSaveGame ), m_Replay( NULL ), m_Exiting( false ), m_Saving( false ), m_HostPort( nHostPort ), m_GameState( nGameState ), m_VirtualHostPID( 255 ), m_FakePlayerPID( 255 ), m_GProxyEmptyActions( 0 ), m_GameName( nGameName ), m_LastGameName( nGameName ), m_VirtualHostName( m_GHost->m_VirtualHostName ), m_OwnerName( nOwnerName ), m_CreatorName( nCreatorName ), m_CreatorServer( nCreatorServer ), m_HCLCommandString( nMap->GetMapDefaultHCL( ) ), m_RandomSeed( GetTicks( ) ), m_HostCounter( m_GHost->m_HostCounter++ ), m_EntryKey( rand( ) ), m_Latency( m_GHost->m_Latency ), m_SyncLimit( m_GHost->m_SyncLimit ), m_SyncCounter( 0 ), m_GameTicks( 0 ), m_CreationTime( GetTime( ) ), m_LastPingTime( GetTime( ) ), m_LastRefreshTime( GetTime( ) ), m_LastDownloadTicks( GetTime( ) ), m_DownloadCounter( 0 ), m_LastDownloadCounterResetTicks( GetTime( ) ), m_LastAnnounceTime( 0 ), m_AnnounceInterval( 0 ), m_LastAutoStartTime( GetTime( ) ), m_AutoStartPlayers( 0 ), m_LastCountDownTicks( 0 ), m_CountDownCounter( 0 ), m_StartedLoadingTicks( 0 ), m_StartPlayers( 0 ), m_LastLagScreenResetTime( 0 ), m_LastActionSentTicks( 0 ), m_LastActionLateBy( 0 ), m_StartedLaggingTime( 0 ), m_LastLagScreenTime( 0 ), m_LastReservedSeen( GetTime( ) ), m_StartedKickVoteTime( 0 ), m_GameOverTime( 0 ), m_LastPlayerLeaveTicks( 0 ), m_MinimumScore( 0. ), m_MaximumScore( 0. ), m_SlotInfoChanged( false ), m_Locked( false ), m_RefreshMessages( m_GHost->m_RefreshMessages ), m_RefreshError( false ), m_RefreshRehosted( false ), m_MuteAll( false ), m_MuteLobby( false ), m_CountDownStarted( false ), m_GameLoading( false ), m_GameLoaded( false ), m_LoadInGame( nMap->GetMapLoadInGame( ) ), m_Lagging( false ), m_AutoSave( m_GHost->m_AutoSave ), m_MatchMaking( false ), m_LocalAdminMessages( m_GHost->m_LocalAdminMessages )
+CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHostPort, unsigned char nGameState, string nGameName, string nOwnerName, string nCreatorName, string nCreatorServer ) : m_GHost( nGHost ), m_SaveGame( nSaveGame ), m_Replay( NULL ), m_Exiting( false ), m_Saving( false ), m_HostPort( nHostPort ), m_GameState( nGameState ), m_VirtualHostPID( 255 ), m_FakePlayerPID( 255 ), m_GProxyEmptyActions( 0 ), m_GameName( nGameName ), m_LastGameName( nGameName ), m_VirtualHostName( m_GHost->m_VirtualHostName ), m_OwnerName( nOwnerName ), m_CreatorName( nCreatorName ), m_CreatorServer( nCreatorServer ), m_HCLCommandString( nMap->GetMapDefaultHCL( ) ), m_RandomSeed( GetTicks( ) ), m_HostCounter( m_GHost->m_HostCounter++ ), m_EntryKey( rand( ) ), m_Latency( m_GHost->m_Latency ), m_SyncLimit( m_GHost->m_SyncLimit ), m_SyncCounter( 0 ), m_GameTicks( 0 ), m_CreationTime( GetTime( ) ), m_LastPingTime( GetTime( ) ), m_LastRefreshTime( GetTime( ) ), m_LastDownloadTicks( GetTime( ) ), m_DownloadCounter( 0 ), m_LastDownloadCounterResetTicks( GetTime( ) ), m_LastAnnounceTime( 0 ), m_AnnounceInterval( 0 ), m_LastAutoStartTime( GetTime( ) ), m_AutoStartPlayers( 0 ), m_LastCountDownTicks( 0 ), m_CountDownCounter( 0 ), m_StartedLoadingTicks( 0 ), m_StartPlayers( 0 ), m_LastLagScreenResetTime( 0 ), m_LastActionSentTicks( 0 ), m_LastActionLateBy( 0 ), m_StartedLaggingTime( 0 ), m_LastLagScreenTime( 0 ), m_LastReservedSeen( GetTime( ) ), m_StartedKickVoteTime( 0 ), m_GameOverTime( 0 ), m_LastPlayerLeaveTicks( 0 ), m_MinimumScore( 0. ), m_MaximumScore( 0. ), m_SlotInfoChanged( false ), m_Locked( false ), m_RefreshMessages( m_GHost->m_RefreshMessages ), m_RefreshError( false ), m_RefreshRehosted( false ), m_MuteAll( false ), m_MuteLobby( false ), m_CountDownStarted( false ), m_GameLoading( false ), m_GameLoaded( false ), m_LoadInGame( nMap->GetMapLoadInGame( ) ), m_Lagging( false ), m_AutoSave( m_GHost->m_AutoSave ), m_MatchMaking( false ), m_LocalAdminMessages( m_GHost->m_LocalAdminMessages ), m_GameUpdate( NULL ), m_LastGameUpdateTime( 0 )
 {
 	m_Socket = new CTCPServer( );
 	m_Protocol = new CGameProtocol( m_GHost );
@@ -446,6 +446,9 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 
 	if( m_RefreshError && !m_CountDownStarted && m_GameState == GAME_PUBLIC && !m_GHost->m_AutoHostGameName.empty( ) && m_GHost->m_AutoHostMaximumGames != 0 && m_GHost->m_AutoHostAutoStartPlayers != 0 && m_AutoStartPlayers != 0 )
 	{
+		// delete the old game
+		DoGameUpdate( true );
+
 		// there's a slim chance that this isn't actually an autohosted game since there is no explicit autohost flag
 		// however, if autohosting is enabled and this game is public and this game is set to autostart, it's probably autohosted
 		// so rehost it using the current autohost game name
@@ -467,6 +470,9 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 
 		m_CreationTime = GetTime( );
 		m_LastRefreshTime = GetTime( );
+		
+		// update the new game
+		DoGameUpdate( true );
 	}
 
 	// refresh every 3 seconds
@@ -930,6 +936,20 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 	{
 		CONSOLE_Print( "[GAME: " + m_GameName + "] gameover timer started (one player left)" );
 		m_GameOverTime = GetTime( );
+	}
+	
+	// game update if needed based on interval
+	
+	if( !m_GameUpdate && GetTime( ) - m_LastGameUpdateTime > m_GHost->m_GamelistRefreshInterval )
+	{
+		DoGameUpdate( false );
+	}
+	
+	if( m_GameUpdate && m_GameUpdate->GetReady( ) )
+	{
+		m_GHost->m_DB->RecoverCallable( m_GameUpdate );
+		delete m_GameUpdate;
+		m_GameUpdate = NULL;
 	}
 
 	// finish the gameover timer
@@ -1496,6 +1516,10 @@ void CBaseGame :: EventPlayerDeleted( CGamePlayer *player )
 
 	m_KickVotePlayer.clear( );
 	m_StartedKickVoteTime = 0;
+	
+	// update the gamelist
+	if( m_GHost->m_GamelistAutoRefresh )
+		DoGameUpdate( false );
 }
 
 void CBaseGame :: EventPlayerDisconnectTimedOut( CGamePlayer *player )
@@ -2084,6 +2108,10 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 	}
 
 	Player->SetSpoofedRealm( JoinedRealm );
+	
+	// update the gamelist
+	if( m_GHost->m_GamelistAutoRefresh )
+		DoGameUpdate( false );
 }
 
 void CBaseGame :: EventPlayerJoinedWithScore( CPotentialPlayer *potential, CIncomingJoinPlayer *joinPlayer, double score )
@@ -3527,25 +3555,127 @@ CGamePlayer *CBaseGame :: GetPlayerFromColour( unsigned char colour )
 	return NULL;
 }
 
-string CBaseGame :: GetPlayerList( )
+string CBaseGame :: GetUsernames( )
 {
-	string players = "";
+	string usernames = "";
 	
 	for( unsigned char i = 0; i < m_Slots.size( ); ++i )
 	{
-		if( m_Slots[i].GetSlotStatus( ) == SLOTSTATUS_OCCUPIED && m_Slots[i].GetComputer( ) == 0 )
-		{
-			CGamePlayer *player = GetPlayerFromSID( i );
-			
-			if( player )
-				players += player->GetName( ) + "\t" + player->GetSpoofedRealm( ) + "\t" + UTIL_ToString( player->GetPing( m_GHost->m_LCPings ) ) + "\t";
-		}
-		
-		else if( m_Slots[i].GetSlotStatus( ) == SLOTSTATUS_OPEN )
-			players += "\t\t\t";
+		CGamePlayer *Player = GetPlayerFromSID( i );
+
+		if( Player )
+			usernames += Player->GetName( ) + ",";
 	}
 
-	return players;
+	return usernames.substr( 0, usernames.length( ) - 1 );
+}
+
+string CBaseGame :: GetServers( )
+{
+	string servers = "";
+	
+	for( unsigned char i = 0; i < m_Slots.size( ); ++i )
+	{
+		CGamePlayer *Player = GetPlayerFromSID( i );
+
+		if( Player )
+			servers += Player->GetJoinedRealm( ) + ",";
+	}
+
+	return servers.substr( 0, servers.length( ) - 1 );
+}
+
+string CBaseGame :: GetPings( )
+{
+	string pings = "";
+	
+	for( unsigned char i = 0; i < m_Slots.size( ); ++i )
+	{
+		CGamePlayer *Player = GetPlayerFromSID( i );
+
+		if( Player )
+			pings += UTIL_ToString( Player->GetPing( m_GHost->m_LCPings ) ) + ",";
+	}
+
+	return pings.substr( 0, pings.length( ) - 1 );
+}
+
+string CBaseGame :: GetIPs( )
+{
+	string ips = "";
+	
+	for( unsigned char i = 0; i < m_Slots.size( ); ++i )
+	{
+		CGamePlayer *Player = GetPlayerFromSID( i );
+
+		if( Player )
+		{
+			BYTEARRAY IP = Player->GetExternalIP( );
+			ips += UTIL_ToString( IP[0] << 24 + IP[1] << 16 + IP[2] << 8 + IP[3] ) + ",";
+		}
+	}
+
+	return ips.substr( 0, ips.length( ) - 1 );
+}
+
+string CBaseGame :: GetTeams( )
+{
+	string teams = "";
+	
+	for( unsigned char i = 0; i < m_Slots.size( ); ++i )
+	{
+		CGamePlayer *Player = GetPlayerFromSID( i );
+
+		if( Player )
+			teams += UTIL_ToString( m_Slots[i].GetTeam( ) ) + ",";
+	}
+
+	return teams.substr( 0, teams.length( ) - 1 );
+}
+
+string CBaseGame :: GetColors( )
+{
+	string colors = "";
+	
+	for( unsigned char i = 0; i < m_Slots.size( ); ++i )
+	{
+		CGamePlayer *Player = GetPlayerFromSID( i );
+
+		if( Player )
+			colors += UTIL_ToString( m_Slots[i].GetColour( ) ) + ",";
+	}
+
+	return colors.substr( 0, colors.length( ) - 1 );
+}
+
+string CBaseGame :: GetLeftTimes( )
+{
+	string lefttimes = "";
+	
+	for( unsigned char i = 0; i < m_Slots.size( ); ++i )
+	{
+		CGamePlayer *Player = GetPlayerFromSID( i );
+
+		if( Player )
+			lefttimes += UTIL_ToString( Player->GetLeft( ) ) + ",";
+	}
+
+	return lefttimes.substr( 0, lefttimes.length( ) - 1 );
+}
+
+string CBaseGame :: GetLeftReasons( )
+{
+	string leftreasons = "";
+	
+	for( unsigned char i = 0; i < m_Slots.size( ); ++i )
+	{
+		CGamePlayer *Player = GetPlayerFromSID( i );
+
+		if( Player )
+			leftreasons += Player->GetLeftReason( ) + ",";
+	}
+
+	return leftreasons.substr( 0, leftreasons.length( ) - 1 );
 }
 
 unsigned char CBaseGame :: GetNewPID( )
@@ -4643,4 +4773,14 @@ void CBaseGame :: DeleteFakePlayer( )
 	SendAll( m_Protocol->SEND_W3GS_PLAYERLEAVE_OTHERS( m_FakePlayerPID, PLAYERLEAVE_LOBBY ) );
 	SendAllSlotInfo( );
 	m_FakePlayerPID = 255;
+}
+
+void CBaseGame :: DoGameUpdate( bool reset )
+{
+	if( !reset )
+		m_GameUpdate = m_GHost->m_DB->ThreadedGameUpdate( m_HostCounter, !m_CountDownStarted, "", m_GameTicks, m_GameName, m_OwnerName, m_CreatorName, "", m_Players.size( ), m_Slots.size( ), GetUsernames( ), GetServers( ), GetPings( ), GetIPs( ), GetTeams( ), GetColors( ), GetLeftTimes( ), GetLeftReasons( ) );
+	else
+		m_GameUpdate = m_GHost->m_DB->ThreadedGameUpdate( m_HostCounter, !m_CountDownStarted, "", m_GameTicks, "", m_OwnerName, m_CreatorName, "", m_Players.size( ), m_Slots.size( ), GetUsernames( ), GetServers( ), GetPings( ), GetIPs( ), GetTeams( ), GetColors( ), GetLeftTimes( ), GetLeftReasons( ) );
+	
+	m_LastGameUpdateTime = GetTime( );
 }

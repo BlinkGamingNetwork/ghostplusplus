@@ -92,6 +92,7 @@ private:
 	string m_JoinedRealm;						// the realm the player joined on (probable, can be spoofed)
 	uint32_t m_TotalPacketsSent;
 	uint32_t m_TotalPacketsReceived;
+	uint32_t m_Left;
 	uint32_t m_LeftCode;						// the code to be sent in W3GS_PLAYERLEAVE_OTHERS for why this player left the game
 	uint32_t m_LoginAttempts;					// the number of attempts to login (used with CAdminGame only)
 	uint32_t m_SyncCounter;						// the number of keepalive packets received from this player
@@ -141,6 +142,7 @@ public:
 	string GetLeftReason( )						{ return m_LeftReason; }
 	string GetSpoofedRealm( )					{ return m_SpoofedRealm; }
 	string GetJoinedRealm( )					{ return m_JoinedRealm; }
+	uint32_t GetLeft( )							{ return m_Left; }
 	uint32_t GetLeftCode( )						{ return m_LeftCode; }
 	uint32_t GetLoginAttempts( )				{ return m_LoginAttempts; }
 	uint32_t GetSyncCounter( )					{ return m_SyncCounter; }
@@ -174,6 +176,7 @@ public:
 	bool GetGProxyDisconnectNoticeSent( )		{ return m_GProxyDisconnectNoticeSent; }
 	uint32_t GetGProxyReconnectKey( )			{ return m_GProxyReconnectKey; }
 
+	void SetLeft( uint32_t nLeft )													{ m_Left = nLeft; }
 	void SetLeftReason( string nLeftReason )										{ m_LeftReason = nLeftReason; }
 	void SetSpoofedRealm( string nSpoofedRealm )									{ m_SpoofedRealm = nSpoofedRealm; }
 	void SetLeftCode( uint32_t nLeftCode )											{ m_LeftCode = nLeftCode; }
