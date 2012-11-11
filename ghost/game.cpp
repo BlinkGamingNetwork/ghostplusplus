@@ -1732,6 +1732,74 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 		else
 			SendChat( player, m_GHost->m_Language->VersionNotAdmin( m_GHost->m_Version ) );
 	}
+	
+	//
+	// !VOTESTART
+	//
+	
+	else if( Command == "votestart" )
+	{
+		bool votestartAuth = player->GetSpoofed( ) && ( AdminCheck || RootAdminCheck || IsOwner( User ) );
+		bool votestartAutohost = m_GameState == GAME_PUBLIC && !m_GHost->m_AutoHostGameName.empty( ) && m_GHost->m_AutoHostMaximumGames != 0 && m_GHost->m_AutoHostAutoStartPlayers != 0 && m_AutoStartPlayers != 0;
+
+		if( m_GHost->m_VoteStartAllowed && !m_CountDownStarted && (votestartAuth || votestartAutohost || !m_GHost->m_VoteStartAutohostOnly) )
+		{
+			if( m_GHost->m_CurrentGame->GetLocked( ) )
+			{
+				SendChat( player, "Error: cannot votestart because the game is locked. Owner is " + m_OwnerName );
+				return HideCommand;
+			}
+
+
+			if(m_StartedVoteStartTime == 0)
+			{ //need >minplayers or admin to START a votestart
+				if (GetNumHumanPlayers() < m_GHost->m_VoteStartMinPlayers && !votestartAuth)
+				{ //need at least eight players to votestart
+					SendChat( player, "You cannot use !votestart until there " + UTIL_ToString(m_GHost->m_VoteStartMinPlayers) + " or more players!" );
+					return HideCommand;
+				}
+
+				for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); ++i )
+					(*i)->SetStartVote( false );
+
+				m_StartedVoteStartTime = GetTime();
+			
+				CONSOLE_Print( "[GAME: " + m_GameName + "] votestart started by player [" + User + "]" );
+			}
+
+			player->SetStartVote(true);
+				
+			uint32_t VotesNeeded;
+			uint32_t Votes = 0;
+
+
+			for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); ++i )
+			{
+				if( (*i)->GetStartVote( ) )
+					++Votes;
+			}
+
+
+			if( m_GHost->m_VoteStartPercentalVoting)
+			{
+				VotesNeeded = ((uint32_t) (GetNumHumanPlayers() *  (m_GHost->m_VoteStartPercent - 1) / 100)) + 1;
+			}
+			else
+			{
+				VotesNeeded = m_GHost->m_VoteStartMinPlayers;
+			}
+		
+			if( Votes < VotesNeeded )
+			{
+				SendAllChat( UTIL_ToString(VotesNeeded - Votes) + " more votes needed to votestart.");
+			}
+			else
+			{
+				StartCountDown( true );
+			}
+
+		}
+	}
 
 	//
 	// !VOTEKICK

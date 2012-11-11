@@ -107,8 +107,10 @@ protected:
 	uint32_t m_LastLagScreenTime;					// GetTime when the last lag screen was active (continuously updated)
 	uint32_t m_LastReservedSeen;					// GetTime when the last reserved player was seen in the lobby
 	uint32_t m_StartedKickVoteTime;					// GetTime when the kick vote was started
+	uint32_t m_StartedVoteStartTime;				// GetTime when the votestart was started
 	uint32_t m_GameOverTime;						// GetTime when the game was over
 	uint32_t m_LastPlayerLeaveTicks;				// GetTicks when the most recent player left the game
+	uint32_t m_ActualyPrintPlayerWaitingStartDelay;			// Counts the number of checks before the waiting for x players before start get printed again
 	double m_MinimumScore;							// the minimum allowed score for matchmaking mode
 	double m_MaximumScore;							// the maximum allowed score for matchmaking mode
 	bool m_SlotInfoChanged;							// if the slot info has changed and hasn't been sent to the players yet (optimization)

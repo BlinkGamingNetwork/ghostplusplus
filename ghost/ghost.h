@@ -120,8 +120,14 @@ public:
 	uint32_t m_LobbyTimeLimit;				// config value: auto close the game lobby after this many minutes without any reserved players
 	uint32_t m_Latency;						// config value: the latency (by default)
 	uint32_t m_SyncLimit;					// config value: the maximum number of packets a player can fall out of sync before starting the lag screen (by default)
+	bool m_VoteStartAllowed;				// config value: if votestarts are allowed or not
+	bool m_VoteStartAutohostOnly;				// config value: if votestarts are only allowed in autohosted games
+	uint32_t m_VoteStartMinPlayers;				// config value: minimum number of players before users can !votestart
+	bool m_VoteStartPercentalVoting;			// config value: votestart percental (true) or absolute (false)
+	uint16_t m_VoteStartPercent;				// config value: value in percent for votestart
 	bool m_VoteKickAllowed;					// config value: if votekicks are allowed or not
 	uint32_t m_VoteKickPercentage;			// config value: percentage of players required to vote yes for a votekick to pass
+	uint32_t m_PlayerBeforeStartPrintDelay;			// config value: delay * 10s is the time between two WaitingForPlayersBeforeStart prints
 	string m_DefaultMap;					// config value: default map (map.cfg)
 	string m_MOTDFile;						// config value: motd.txt
 	string m_GameLoadedFile;				// config value: gameloaded.txt

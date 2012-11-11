@@ -1370,6 +1370,11 @@ void CGHost :: SetConfigs( CConfig *CFG )
 	m_LobbyTimeLimit = CFG->GetInt( "bot_lobbytimelimit", 10 );
 	m_Latency = CFG->GetInt( "bot_latency", 100 );
 	m_SyncLimit = CFG->GetInt( "bot_synclimit", 50 );
+	m_VoteStartAllowed = CFG->GetInt( "bot_votestartallowed", 1 ) == 0 ? false : true;
+	m_VoteStartAutohostOnly = CFG->GetInt( "bot_votestartautohostonly", 1 ) == 0 ? false : true;
+	m_VoteStartMinPlayers = CFG->GetInt( "bot_votestartminplayers", 8 );
+	m_VoteStartPercentalVoting = CFG->GetInt( "bot_votestartpercentalvoting", 1) == 0 ? false : true;
+	m_VoteStartPercent = CFG->GetInt( "bot_votestartpercent", 60);
 	m_VoteKickAllowed = CFG->GetInt( "bot_votekickallowed", 1 ) == 0 ? false : true;
 	m_VoteKickPercentage = CFG->GetInt( "bot_votekickpercentage", 100 );
 
@@ -1379,6 +1384,8 @@ void CGHost :: SetConfigs( CConfig *CFG )
 		CONSOLE_Print( "[GHOST] warning - bot_votekickpercentage is greater than 100, using 100 instead" );
 	}
 
+	m_PlayerBeforeStartPrintDelay = CFG->GetInt( "bot_playerbeforestartprintdelay", 3);
+	
 	m_MOTDFile = CFG->GetString( "bot_motdfile", "motd.txt" );
 	m_GameLoadedFile = CFG->GetString( "bot_gameloadedfile", "gameloaded.txt" );
 	m_GameOverFile = CFG->GetString( "bot_gameoverfile", "gameover.txt" );
