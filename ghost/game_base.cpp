@@ -545,7 +545,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 
 				uint32_t MapSize = UTIL_ByteArrayToUInt32( m_Map->GetMapSize( ), false );
 
-				while( (*i)->GetLastMapPartSent( ) < (*i)->GetLastMapPartAcked( ) + 1442 * 100 && (*i)->GetLastMapPartSent( ) < MapSize )
+				while( (*i)->GetLastMapPartSent( ) < (*i)->GetLastMapPartAcked( ) + 14420 * 100 && (*i)->GetLastMapPartSent( ) < MapSize )
 				{
 					if( (*i)->GetLastMapPartSent( ) == 0 )
 					{
@@ -562,8 +562,8 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 						break;
 
 					Send( *i, m_Protocol->SEND_W3GS_MAPPART( GetHostPID( ), (*i)->GetPID( ), (*i)->GetLastMapPartSent( ), m_Map->GetMapData( ) ) );
-					(*i)->SetLastMapPartSent( (*i)->GetLastMapPartSent( ) + 1442 );
-					m_DownloadCounter += 1442;
+					(*i)->SetLastMapPartSent( (*i)->GetLastMapPartSent( ) + 14420 );
+					m_DownloadCounter += 14420;
 				}
 			}
 		}
