@@ -292,6 +292,19 @@ CCallableBanList *CGHostDBMySQL :: ThreadedBanList( string server )
 	return Callable;
 }
 
+CCallableCommandList *CGHostDBMySQL :: ThreadedCommandList( )
+{
+	void *Connection = GetIdleConnection( );
+
+	if( !Connection )
+                ++m_NumConnections;
+
+	CCallableCommandList *Callable = new CMySQLCallableCommandList( Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port );
+	CreateThread( Callable );
+        ++m_OutstandingCallables;
+	return Callable;
+}
+
 CCallableGameAdd *CGHostDBMySQL :: ThreadedGameAdd( string server, string map, string gamename, string ownername, uint32_t duration, uint32_t gamestate, string creatorname, string creatorserver )
 {
 	void *Connection = GetIdleConnection( );
@@ -785,6 +798,41 @@ vector<CDBBan *> MySQLBanList( void *conn, string *error, uint32_t botid, string
 	}
 
 	return BanList;
+}
+
+vector<string> MySQLCommandList( void *conn, string *error, uint32_t botid )
+{
+	vector<string> CommandList;
+	string Query = "SELECT command FROM commands WHERE botid='" + UTIL_ToString(botid) + "'";
+
+	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
+		*error = mysql_error( (MYSQL *)conn );
+	else
+	{
+		MYSQL_RES *Result = mysql_store_result( (MYSQL *)conn );
+
+		if( Result )
+		{
+			vector<string> Row = MySQLFetchRow( Result );
+
+			while( Row.size( ) == 1 )
+			{
+				CommandList.push_back( Row[0] );
+				Row = MySQLFetchRow( Result );
+			}
+
+			mysql_free_result( Result );
+		}
+		else
+			*error = mysql_error( (MYSQL *)conn );
+	}
+
+	string DeleteQuery = "DELETE FROM commands WHERE botid='" + UTIL_ToString(botid) + "'";
+
+	if( mysql_real_query( (MYSQL *)conn, DeleteQuery.c_str( ), DeleteQuery.size( ) ) != 0 )
+		*error = mysql_error( (MYSQL *)conn );
+
+	return CommandList;
 }
 
 uint32_t MySQLGameAdd( void *conn, string *error, uint32_t botid, string server, string map, string gamename, string ownername, uint32_t duration, uint32_t gamestate, string creatorname, string creatorserver )
@@ -1321,6 +1369,16 @@ void CMySQLCallableBanList :: operator( )( )
 
 	if( m_Error.empty( ) )
 		m_Result = MySQLBanList( m_Connection, &m_Error, m_SQLBotID, m_Server );
+
+	Close( );
+}
+
+void CMySQLCallableCommandList :: operator( )( )
+{
+	Init( );
+
+	if( m_Error.empty( ) )
+		m_Result = MySQLCommandList( m_Connection, &m_Error, m_SQLBotID );
 
 	Close( );
 }

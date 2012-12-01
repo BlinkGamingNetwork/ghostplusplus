@@ -107,6 +107,11 @@ vector<CDBBan *> CGHostDB :: BanList( string server )
 	return vector<CDBBan *>( );
 }
 
+vector<string> CGHostDB :: CommandList( )
+{
+	return vector<string>( );
+}
+
 uint32_t CGHostDB :: GameAdd( string server, string map, string gamename, string ownername, uint32_t duration, uint32_t gamestate, string creatorname, string creatorserver )
 {
 	return 0;
@@ -252,6 +257,11 @@ CCallableGameAdd *CGHostDB :: ThreadedGameAdd( string server, string map, string
 	return NULL;
 }
 
+CCallableCommandList *CGHostDB :: ThreadedCommandList( )
+{
+	return NULL;
+}
+
 CCallableGameUpdate *CGHostDB :: ThreadedGameUpdate( uint32_t hostcounter, bool lobby, string map_type, uint32_t duration, string gamename, string ownername, string creatorname, string map, uint32_t players, uint32_t total, string usernames, string servers, string pings, string ips, string teams, string colors, string lefttimes, string leftreasons )
 {
 	return NULL;
@@ -373,6 +383,11 @@ CCallableBanRemove :: ~CCallableBanRemove( )
 }
 
 CCallableBanList :: ~CCallableBanList( )
+{
+	// don't delete anything in m_Result here, it's the caller's responsibility
+}
+
+CCallableCommandList :: ~CCallableCommandList( )
 {
 	// don't delete anything in m_Result here, it's the caller's responsibility
 }

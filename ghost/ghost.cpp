@@ -493,6 +493,7 @@ CGHost :: CGHost( CConfig *CFG )
 	m_AutoHostGameName = CFG->GetString( "autohost_gamename", string( ) );
 	m_AutoHostOwner = CFG->GetString( "autohost_owner", string( ) );
 	m_LastAutoHostTime = GetTime( );
+	m_LastCommandListTime = GetTime( );
 	m_AutoHostMatchMaking = false;
 	m_AutoHostMinimumScore = 0.0;
 	m_AutoHostMaximumScore = 0.0;
@@ -1172,6 +1173,30 @@ bool CGHost :: Update( long usecBlock )
 		}
 
 		m_LastAutoHostTime = GetTime( );
+
+		//refresh command list every 3 seconds
+		if( !m_CallableCommandList && GetTime( ) - m_LastCommandListTime >= 3 )
+		{
+		    m_CallableCommandList = m_DB->ThreadedCommandList( );
+		    m_LastCommandListTime = GetTime();
+		}
+
+		if( m_CallableCommandList && m_CallableCommandList->GetReady( ) )
+		{
+			vector<string> commands = m_CallableCommandList->GetResult( );
+			
+			
+	        for( vector<string> :: iterator i = commands.begin( ); i != commands.end( ); ++i )
+		    {
+	            CONSOLE_Print("[GHOST] Executing command from MYSQL: " + *i);
+			    m_BNETs[0]->BotCommand(*i, m_BNETs[0]->GetUserName(), true);
+		    }
+			
+			m_DB->RecoverCallable( m_CallableCommandList );
+			delete m_CallableCommandList;
+			m_CallableCommandList = NULL;
+		    m_LastCommandListTime = GetTime();
+		}
 	}
 
 	return m_Exiting || AdminExit || BNETExit;

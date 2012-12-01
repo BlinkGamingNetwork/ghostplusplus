@@ -156,6 +156,7 @@ public:
 	void ExtractPackets( );
 	void ProcessPackets( );
 	void ProcessChatEvent( CIncomingChatEvent *chatEvent );
+	void BotCommand( string Message, string User, bool Whisper);
 
 	// functions to send packets to battle.net
 

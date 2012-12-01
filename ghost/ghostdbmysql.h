@@ -199,6 +199,7 @@ public:
 	virtual CCallableBanRemove *ThreadedBanRemove( string server, string user );
 	virtual CCallableBanRemove *ThreadedBanRemove( string user );
 	virtual CCallableBanList *ThreadedBanList( string server );
+	virtual CCallableCommandList *ThreadedCommandList(  );
 	virtual CCallableGameAdd *ThreadedGameAdd( string server, string map, string gamename, string ownername, uint32_t duration, uint32_t gamestate, string creatorname, string creatorserver );
 	virtual CCallableGameUpdate *ThreadedGameUpdate( uint32_t hostcounter, bool lobby, string map_type, uint32_t duration, string gamename, string ownername, string creatorname, string map, uint32_t players, uint32_t total, string usernames, string servers, string pings, string ips, string teams, string colors, string lefttimes, string leftreasons );
 	virtual CCallableGamePlayerAdd *ThreadedGamePlayerAdd( uint32_t gameid, string name, string ip, uint32_t spoofed, string spoofedrealm, uint32_t reserved, uint32_t loadingtime, uint32_t left, string leftreason, uint32_t team, uint32_t colour );
@@ -233,6 +234,7 @@ bool MySQLBanAdd( void *conn, string *error, uint32_t botid, string server, stri
 bool MySQLBanRemove( void *conn, string *error, uint32_t botid, string server, string user );
 bool MySQLBanRemove( void *conn, string *error, uint32_t botid, string user );
 vector<CDBBan *> MySQLBanList( void *conn, string *error, uint32_t botid, string server );
+vector<string> MySQLCommandList( void *conn, string *error, uint32_t botid );
 uint32_t MySQLGameAdd( void *conn, string *error, uint32_t botid, string server, string map, string gamename, string ownername, uint32_t duration, uint32_t gamestate, string creatorname, string creatorserver );
 bool MySQLGameUpdate( void *conn, string *error, uint32_t botid, uint32_t hostcounter, bool lobby, string map_type, uint32_t duration, string gamename, string ownername, string creatorname, string map, uint32_t players, uint32_t total, string usernames, string servers, string pings, string ips, string teams, string colors, string lefttimes, string leftreasons );
 uint32_t MySQLGamePlayerAdd( void *conn, string *error, uint32_t botid, uint32_t gameid, string name, string ip, uint32_t spoofed, string spoofedrealm, uint32_t reserved, uint32_t loadingtime, uint32_t left, string leftreason, uint32_t team, uint32_t colour );
@@ -376,6 +378,17 @@ class CMySQLCallableBanList : public CCallableBanList, public CMySQLCallable
 public:
 	CMySQLCallableBanList( string nServer, void *nConnection, uint32_t nSQLBotID, string nSQLServer, string nSQLDatabase, string nSQLUser, string nSQLPassword, uint16_t nSQLPort ) : CBaseCallable( ), CCallableBanList( nServer ), CMySQLCallable( nConnection, nSQLBotID, nSQLServer, nSQLDatabase, nSQLUser, nSQLPassword, nSQLPort ) { }
 	virtual ~CMySQLCallableBanList( ) { }
+
+	virtual void operator( )( );
+	virtual void Init( ) { CMySQLCallable :: Init( ); }
+	virtual void Close( ) { CMySQLCallable :: Close( ); }
+};
+
+class CMySQLCallableCommandList : public CCallableCommandList, public CMySQLCallable
+{
+public:
+	CMySQLCallableCommandList( void *nConnection, uint32_t nSQLBotID, string nSQLServer, string nSQLDatabase, string nSQLUser, string nSQLPassword, uint16_t nSQLPort ) : CBaseCallable( ), CMySQLCallable( nConnection, nSQLBotID, nSQLServer, nSQLDatabase, nSQLUser, nSQLPassword, nSQLPort ) { }
+	virtual ~CMySQLCallableCommandList( ) { }
 
 	virtual void operator( )( );
 	virtual void Init( ) { CMySQLCallable :: Init( ); }
