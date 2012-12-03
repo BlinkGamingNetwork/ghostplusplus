@@ -36,7 +36,10 @@
 
 CPotentialPlayer :: CPotentialPlayer( CGameProtocol *nProtocol, CBaseGame *nGame, CTCPSocket *nSocket ) : m_Protocol( nProtocol ), m_Game( nGame ), m_Socket( nSocket ), m_DeleteMe( false ), m_Error( false ), m_IncomingJoinPlayer( NULL )
 {
-
+	if( nSocket )
+		m_CachedIP = nSocket->GetIPString( );
+	else
+		m_CachedIP = string( );
 }
 
 CPotentialPlayer :: ~CPotentialPlayer( )
@@ -66,9 +69,14 @@ BYTEARRAY CPotentialPlayer :: GetExternalIP( )
 string CPotentialPlayer :: GetExternalIPString( )
 {
 	if( m_Socket )
-		return m_Socket->GetIPString( );
-
-	return string( );
+	{
+		string IPString = m_Socket->GetIPString( );
+		
+		if( !IPString.empty( ) && IPString != "0.0.0.0" )
+			return IPString;
+	}
+	
+	return m_CachedIP;
 }
 
 bool CPotentialPlayer :: Update( void *fd )
@@ -605,4 +613,5 @@ void CGamePlayer :: EventGProxyReconnect( CTCPSocket *NewSocket, uint32_t LastPa
 	m_GProxyBuffer = TempBuffer;
 	m_GProxyDisconnectNoticeSent = false;
 	m_Game->SendAllChat( m_Game->m_GHost->m_Language->PlayerReconnectedWithGProxy( m_Name ) );
+	m_CachedIP = m_Socket->GetIPString( );
 }

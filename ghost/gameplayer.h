@@ -47,6 +47,7 @@ protected:
 	bool m_Error;
 	string m_ErrorString;
 	CIncomingJoinPlayer *m_IncomingJoinPlayer;
+	string m_CachedIP;
 
 public:
 	CPotentialPlayer( CGameProtocol *nProtocol, CBaseGame *nGame, CTCPSocket *nSocket );
