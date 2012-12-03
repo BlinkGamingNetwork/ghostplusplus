@@ -1824,16 +1824,51 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 					SendChat( player, m_GHost->m_Language->UnableToVoteKickPlayerIsReserved( LastMatch->GetName( ) ) );
 				else
 				{
-					m_KickVotePlayer = LastMatch->GetName( );
-					m_StartedKickVoteTime = GetTime( );
+					//see if the player is the only one left on his team
+					unsigned char SID = GetSIDFromPID( LastMatch->GetPID( ) );
+					bool OnlyPlayer = false;
 
-					for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); ++i )
-						(*i)->SetKickVote( false );
+					if( SID < m_Slots.size( ) )
+					{
+						unsigned char Team = m_Slots[SID].GetTeam( );
+						OnlyPlayer = true;
+						char sid, team;
+					
+						for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++)
+						{
+							if( *i && LastMatch != *i && !(*i)->GetLeftMessageSent( ) )
+							{
+								sid = GetSIDFromPID( (*i)->GetPID( ) );
+								if( sid != 255 )
+								{
+									team = m_Slots[sid].GetTeam( );
+									if( team == Team )
+									{
+										OnlyPlayer = false;
+										break;
+									}
+								}			
+							}
+						}
+					}
+				
+					if( OnlyPlayer )
+						SendChat( player, "Unable to votekick player [" + LastMatch->GetName( ) + "]: cannot votekick when there is only one player on victim's team." );
+					else if( LastMatch == player )
+						SendChat( player, "You cannot votekick yourself!" );
+					else
+					{
+						m_KickVotePlayer = LastMatch->GetName( );
+						m_StartedKickVoteTime = GetTime( );
 
-					player->SetKickVote( true );
-					CONSOLE_Print( "[GAME: " + m_GameName + "] votekick against player [" + m_KickVotePlayer + "] started by player [" + User + "]" );
-					SendAllChat( m_GHost->m_Language->StartedVoteKick( LastMatch->GetName( ), User, UTIL_ToString( (uint32_t)ceil( ( GetNumHumanPlayers( ) - 1 ) * (float)m_GHost->m_VoteKickPercentage / 100 ) - 1 ) ) );
-					SendAllChat( m_GHost->m_Language->TypeYesToVote( string( 1, m_GHost->m_CommandTrigger ) ) );
+						for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); ++i )
+							(*i)->SetKickVote( false );
+
+						player->SetKickVote( true );
+						CONSOLE_Print( "[GAME: " + m_GameName + "] votekick against player [" + m_KickVotePlayer + "] started by player [" + User + "]" );
+						SendAllChat( m_GHost->m_Language->StartedVoteKick( LastMatch->GetName( ), User, UTIL_ToString( (uint32_t)ceil( ( GetNumHumanPlayers( ) - 1 ) * (float)m_GHost->m_VoteKickPercentage / 100 ) - 1 ) ) );
+						SendAllChat( m_GHost->m_Language->TypeYesToVote( string( 1, m_GHost->m_CommandTrigger ) ) );
+					}
 				}
 			}
 			else
