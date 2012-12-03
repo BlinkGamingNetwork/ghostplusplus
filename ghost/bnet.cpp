@@ -134,6 +134,7 @@ CBNET :: CBNET( CGHost *nGHost, string nServer, string nServerAlias, string nBNL
 	m_HoldFriends = nHoldFriends;
 	m_HoldClan = nHoldClan;
 	m_PublicCommands = nPublicCommands;
+	m_ConnectFailCount = 0;
 }
 
 CBNET :: ~CBNET( )
@@ -615,11 +616,12 @@ bool CBNET :: Update( void *fd, void *send_fd )
 		}
 	}
 
-	if( !m_Socket->GetConnecting( ) && !m_Socket->GetConnected( ) && ( m_FirstConnect || GetTime( ) - m_LastDisconnectedTime >= 90 ) )
+	if( !m_Socket->GetConnecting( ) && !m_Socket->GetConnected( ) && ( m_FirstConnect || GetTime( ) - m_LastDisconnectedTime >= 90 + m_ConnectFailCount * 90 || GetTime( ) - m_LastDisconnectedTime >= 600 ) )
 	{
 		// attempt to connect to battle.net
 
 		m_FirstConnect = false;
+		m_ConnectFailCount++;
 		CONSOLE_Print( "[BNET: " + m_ServerAlias + "] connecting to server [" + m_Server + "] on port 6112" );
 		m_GHost->EventBNETConnecting( this );
 
@@ -910,6 +912,9 @@ void CBNET :: ProcessPackets( )
 					m_Socket->PutBytes( m_Protocol->SEND_SID_ENTERCHAT( ) );
 					m_Socket->PutBytes( m_Protocol->SEND_SID_FRIENDSLIST( ) );
 					m_Socket->PutBytes( m_Protocol->SEND_SID_CLANMEMBERLIST( ) );
+					
+					// reset the connection fail counter
+					m_ConnectFailCount = 0;
 				}
 				else
 				{
