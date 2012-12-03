@@ -300,6 +300,21 @@ CCallableCommandList *CGHostDBMySQL :: ThreadedCommandList( )
                 ++m_NumConnections;
 
 	CCallableCommandList *Callable = new CMySQLCallableCommandList( Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port );
+
+	CreateThread( Callable );
+        ++m_OutstandingCallables;
+	return Callable;
+}
+
+CCallableBnetUpdate *CGHostDBMySQL :: ThreadedBnetUpdate( string server, uint32_t status )
+{
+	void *Connection = GetIdleConnection( );
+
+	if( !Connection )
+                ++m_NumConnections;
+
+	CCallableBnetUpdate *Callable = new CMySQLCallableBnetUpdate( server, status, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port );
+
 	CreateThread( Callable );
         ++m_OutstandingCallables;
 	return Callable;
@@ -800,6 +815,7 @@ vector<CDBBan *> MySQLBanList( void *conn, string *error, uint32_t botid, string
 	return BanList;
 }
 
+
 vector<string> MySQLCommandList( void *conn, string *error, uint32_t botid )
 {
 	vector<string> CommandList;
@@ -814,7 +830,7 @@ vector<string> MySQLCommandList( void *conn, string *error, uint32_t botid )
 		if( Result )
 		{
 			vector<string> Row = MySQLFetchRow( Result );
-
+			
 			while( Row.size( ) == 1 )
 			{
 				CommandList.push_back( Row[0] );
@@ -833,6 +849,48 @@ vector<string> MySQLCommandList( void *conn, string *error, uint32_t botid )
 		*error = mysql_error( (MYSQL *)conn );
 
 	return CommandList;
+}
+
+uint32_t MySQLBnetUpdate( void *conn, string *error, uint32_t botid, string server, uint32_t status )
+{
+	string EscServer = MySQLEscapeString( conn, server );
+	string Query = "SELECT id FROM bnetstatus WHERE botid = " + UTIL_ToString( botid ) + " AND server='" + EscServer + "'";
+	uint32_t ExistingStatusID = 0;
+
+	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
+	{
+		*error = mysql_error( (MYSQL *)conn );
+		return 0;
+	}
+	else
+	{
+		MYSQL_RES *Result = mysql_store_result( (MYSQL *)conn );
+
+		if( Result )
+		{
+			vector<string> Row = MySQLFetchRow( Result );
+
+			if( Row.size( ) == 1 )
+				ExistingStatusID = UTIL_ToUInt32( Row[0] );
+
+			mysql_free_result( Result );
+		}
+		else
+			*error = mysql_error( (MYSQL *)conn );
+	}
+	
+	if( ExistingStatusID == 0 )
+		Query = "INSERT INTO bnetstatus (botid, server, status) VALUES (" + UTIL_ToString( botid ) + ", '" + EscServer + "', " + UTIL_ToString( status ) + ")";
+	else
+		Query = "UPDATE bnetstatus SET status = " + UTIL_ToString( status ) + " WHERE id = " + UTIL_ToString( ExistingStatusID );
+	
+	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
+		*error = mysql_error( (MYSQL *)conn );
+
+	if( ExistingStatusID == 0 )
+		return mysql_insert_id( (MYSQL *)conn );
+	else
+		return ExistingStatusID;
 }
 
 uint32_t MySQLGameAdd( void *conn, string *error, uint32_t botid, string server, string map, string gamename, string ownername, uint32_t duration, uint32_t gamestate, string creatorname, string creatorserver )
@@ -1379,6 +1437,16 @@ void CMySQLCallableCommandList :: operator( )( )
 
 	if( m_Error.empty( ) )
 		m_Result = MySQLCommandList( m_Connection, &m_Error, m_SQLBotID );
+
+	Close( );
+}
+
+void CMySQLCallableBnetUpdate :: operator( )( )
+{
+	Init( );
+
+	if( m_Error.empty( ) )
+		m_Result = MySQLBnetUpdate( m_Connection, &m_Error, m_SQLBotID, m_Server, m_Status );
 
 	Close( );
 }

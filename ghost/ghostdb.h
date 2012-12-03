@@ -37,6 +37,7 @@ class CCallableBanAdd;
 class CCallableBanRemove;
 class CCallableBanList;
 class CCallableCommandList;
+class CCallableBnetUpdate;
 class CCallableGameAdd;
 class CCallableGamePlayerAdd;
 class CCallableGamePlayerSummaryCheck;
@@ -88,6 +89,7 @@ public:
 	virtual bool BanRemove( string user );
 	virtual vector<CDBBan *> BanList( string server );
 	virtual vector<string> CommandList(  );
+	virtual uint32_t BnetUpdate( string server, uint32_t status );
 	virtual uint32_t GameAdd( string server, string map, string gamename, string ownername, uint32_t duration, uint32_t gamestate, string creatorname, string creatorserver );
 	virtual bool GameUpdate( uint32_t hostcounter, bool lobby, string map_type, uint32_t duration, string gamename, string ownername, string creatorname, string map, uint32_t players, uint32_t total, string usernames, string servers, string pings, string ips, string teams, string colors, string lefttimes, string leftreasons );
 	virtual uint32_t GamePlayerAdd( uint32_t gameid, string name, string ip, uint32_t spoofed, string spoofedrealm, uint32_t reserved, uint32_t loadingtime, uint32_t left, string leftreason, uint32_t team, uint32_t colour );
@@ -120,6 +122,7 @@ public:
 	virtual CCallableBanRemove *ThreadedBanRemove( string user );
 	virtual CCallableBanList *ThreadedBanList( string server );
 	virtual CCallableCommandList *ThreadedCommandList( );
+	virtual CCallableBnetUpdate *ThreadedBnetUpdate( string server, uint32_t status );
 	virtual CCallableGameAdd *ThreadedGameAdd( string server, string map, string gamename, string ownername, uint32_t duration, uint32_t gamestate, string creatorname, string creatorserver );
 	virtual CCallableGameUpdate *ThreadedGameUpdate( uint32_t hostcounter, bool lobby, string map_type, uint32_t duration, string gamename, string ownername, string creatorname, string map, uint32_t players, uint32_t total, string usernames, string servers, string pings, string ips, string teams, string colors, string lefttimes, string leftreasons );
 	virtual CCallableGamePlayerAdd *ThreadedGamePlayerAdd( uint32_t gameid, string name, string ip, uint32_t spoofed, string spoofedrealm, uint32_t reserved, uint32_t loadingtime, uint32_t left, string leftreason, uint32_t team, uint32_t colour );
@@ -362,6 +365,21 @@ public:
 
 	virtual vector<string> GetResult( )				{ return m_Result; }
 	virtual void SetResult( vector<string> nResult )	{ m_Result = nResult; }
+};
+
+class CCallableBnetUpdate : virtual public CBaseCallable
+{
+protected:
+	string m_Server;
+	uint32_t m_Status;
+	uint32_t m_Result;
+
+public:
+	CCallableBnetUpdate( string nServer, uint32_t nStatus ) : CBaseCallable( ), m_Server( nServer ), m_Status( nStatus ) { }
+	virtual ~CCallableBnetUpdate( );
+
+	virtual uint32_t GetResult( )					{ return m_Result; }
+	virtual void SetResult( uint32_t nResult )		{ m_Result = nResult; }
 };
 
 class CCallableGameAdd : virtual public CBaseCallable

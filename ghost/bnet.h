@@ -41,6 +41,7 @@ class CCallableBanCount;
 class CCallableBanAdd;
 class CCallableBanRemove;
 class CCallableBanList;
+class CCallableBnetUpdate;
 class CCallableGamePlayerSummaryCheck;
 class CCallableDotAPlayerSummaryCheck;
 class CDBBan;
@@ -78,6 +79,7 @@ private:
 	vector<PairedDPSCheck> m_PairedDPSChecks;		// vector of paired threaded database DotA player summary checks in progress
 	CCallableAdminList *m_CallableAdminList;		// threaded database admin list in progress
 	CCallableBanList *m_CallableBanList;			// threaded database ban list in progress
+	CCallableBnetUpdate *m_CallableBnetUpdate;		// threaded databane bnet status update in progress
 	vector<string> m_Admins;						// vector of cached admins
 	vector<CDBBan *> m_Bans;						// vector of cached bans
 	bool m_Exiting;									// set to true and this class will be deleted next update
@@ -113,6 +115,7 @@ private:
 	uint32_t m_FrequencyDelayTimes;
 	uint32_t m_LastAdminRefreshTime;				// GetTime when the admin list was last refreshed from the database
 	uint32_t m_LastBanRefreshTime;					// GetTime when the ban list was last refreshed from the database
+	uint32_t m_LastBnetUpdateTime;					// GetTime when we last did a bnet status update
 	bool m_FirstConnect;							// if we haven't tried to connect to battle.net yet
 	bool m_WaitingToConnect;						// if we're waiting to reconnect to battle.net after being disconnected
 	bool m_LoggedIn;								// if we've logged into battle.net or not

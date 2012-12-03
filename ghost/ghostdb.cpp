@@ -112,6 +112,11 @@ vector<string> CGHostDB :: CommandList( )
 	return vector<string>( );
 }
 
+uint32_t CGHostDB :: BnetUpdate( string server, uint32_t status )
+{
+	return 0;
+}
+
 uint32_t CGHostDB :: GameAdd( string server, string map, string gamename, string ownername, uint32_t duration, uint32_t gamestate, string creatorname, string creatorserver )
 {
 	return 0;
@@ -248,6 +253,11 @@ CCallableBanRemove *CGHostDB :: ThreadedBanRemove( string user )
 }
 
 CCallableBanList *CGHostDB :: ThreadedBanList( string server )
+{
+	return NULL;
+}
+
+CCallableBnetUpdate *CGHostDB :: ThreadedBnetUpdate( string server, uint32_t status )
 {
 	return NULL;
 }
@@ -390,6 +400,11 @@ CCallableBanList :: ~CCallableBanList( )
 CCallableCommandList :: ~CCallableCommandList( )
 {
 	// don't delete anything in m_Result here, it's the caller's responsibility
+}
+
+CCallableBnetUpdate :: ~CCallableBnetUpdate( )
+{
+
 }
 
 CCallableGameAdd :: ~CCallableGameAdd( )

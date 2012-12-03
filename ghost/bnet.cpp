@@ -126,6 +126,7 @@ CBNET :: CBNET( CGHost *nGHost, string nServer, string nServerAlias, string nBNL
 	m_FrequencyDelayTimes = 0;
 	m_LastAdminRefreshTime = GetTime( );
 	m_LastBanRefreshTime = GetTime( );
+	m_LastBnetUpdateTime = 0;
 	m_FirstConnect = true;
 	m_WaitingToConnect = true;
 	m_LoggedIn = false;
@@ -435,6 +436,26 @@ bool CBNET :: Update( void *fd, void *send_fd )
 		delete m_CallableBanList;
 		m_CallableBanList = NULL;
 		m_LastBanRefreshTime = GetTime( );
+	}
+
+	// update our Battle.net status information every thirty seconds
+
+	if( !m_CallableBnetUpdate && GetTime( ) - m_LastBnetUpdateTime >= 30 )
+	{
+		// status integer is as follows
+		//  0: not connected
+		//  1: connected
+		uint32_t Status = m_LoggedIn ? 1 : 0;
+		
+		m_CallableBnetUpdate = m_GHost->m_DB->ThreadedBnetUpdate( m_Server, Status );
+	}
+
+	if( m_CallableBnetUpdate && m_CallableBnetUpdate->GetReady( ) )
+	{
+		m_GHost->m_DB->RecoverCallable( m_CallableBnetUpdate );
+		delete m_CallableBnetUpdate;
+		m_CallableBnetUpdate = NULL;
+		m_LastBnetUpdateTime = GetTime( );
 	}
 
 	// we return at the end of each if statement so we don't have to deal with errors related to the order of the if statements
