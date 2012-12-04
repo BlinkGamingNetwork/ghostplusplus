@@ -130,6 +130,7 @@ protected:
 	bool m_LocalAdminMessages;						// if local admin messages should be relayed or not
 	CCallableGameUpdate *m_GameUpdate;				// game update callable
 	uint32_t m_LastGameUpdateTime;					// last time game update database callable
+    uint32_t m_DatabaseID;                          // the ID number from the database, which we'll use to save replay
 
 public:
 	CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHostPort, unsigned char nGameState, string nGameName, string nOwnerName, string nCreatorName, string nCreatorServer );

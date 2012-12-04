@@ -1940,6 +1940,9 @@ void CGame :: EventGameStarted( )
 
 bool CGame :: IsGameDataSaved( )
 {
+	if( m_CallableGameAdd && m_CallableGameAdd->GetReady( ) )
+		m_DatabaseID = m_CallableGameAdd->GetResult();
+	
 	return m_CallableGameAdd && m_CallableGameAdd->GetReady( );
 }
 
