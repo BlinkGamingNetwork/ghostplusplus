@@ -55,6 +55,7 @@ CBNET :: CBNET( CGHost *nGHost, string nServer, string nServerAlias, string nBNL
 	m_BNCSUtil = new CBNCSUtilInterface( nUserName, nUserPassword );
 	m_CallableAdminList = m_GHost->m_DB->ThreadedAdminList( nServer );
 	m_CallableBanList = m_GHost->m_DB->ThreadedBanList( nServer );
+	m_CallableBnetUpdate = NULL;
 	m_Exiting = false;
 	m_Server = nServer;
 	string LowerServer = m_Server;
