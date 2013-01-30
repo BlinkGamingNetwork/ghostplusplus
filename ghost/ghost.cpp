@@ -1174,30 +1174,30 @@ bool CGHost :: Update( long usecBlock )
 		}
 
 		m_LastAutoHostTime = GetTime( );
+	}
 
-		//refresh command list every 3 seconds
-		if( !m_CallableCommandList && GetTime( ) - m_LastCommandListTime >= 3 )
-		{
-		    m_CallableCommandList = m_DB->ThreadedCommandList( );
-		    m_LastCommandListTime = GetTime();
-		}
+	//refresh command list every 3 seconds
+	if( !m_CallableCommandList && GetTime( ) - m_LastCommandListTime >= 3 )
+	{
+	    m_CallableCommandList = m_DB->ThreadedCommandList( );
+	    m_LastCommandListTime = GetTime();
+	}
 
-		if( m_CallableCommandList && m_CallableCommandList->GetReady( ) )
-		{
-			vector<string> commands = m_CallableCommandList->GetResult( );
-			
-			
-	        for( vector<string> :: iterator i = commands.begin( ); i != commands.end( ); ++i )
-		    {
-	            CONSOLE_Print("[GHOST] Executing command from MYSQL: " + *i);
-			    m_BNETs[0]->BotCommand(*i, m_BNETs[0]->GetUserName(), true);
-		    }
-			
-			m_DB->RecoverCallable( m_CallableCommandList );
-			delete m_CallableCommandList;
-			m_CallableCommandList = NULL;
-		    m_LastCommandListTime = GetTime();
-		}
+	if( m_CallableCommandList && m_CallableCommandList->GetReady( ) )
+	{
+		vector<string> commands = m_CallableCommandList->GetResult( );
+		
+		
+        for( vector<string> :: iterator i = commands.begin( ); i != commands.end( ); ++i )
+	    {
+            CONSOLE_Print("[GHOST] Executing command from MYSQL: " + *i);
+		    m_BNETs[0]->BotCommand(*i, m_BNETs[0]->GetUserName(), true);
+	    }
+		
+		m_DB->RecoverCallable( m_CallableCommandList );
+		delete m_CallableCommandList;
+		m_CallableCommandList = NULL;
+	    m_LastCommandListTime = GetTime();
 	}
 
 	return m_Exiting || AdminExit || BNETExit;
