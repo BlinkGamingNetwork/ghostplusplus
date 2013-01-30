@@ -1418,7 +1418,7 @@ void CGHost :: SetConfigs( CConfig *CFG )
 	m_TCPNoDelay = CFG->GetInt( "tcp_nodelay", 0 ) == 0 ? false : true;
 	m_MatchMakingMethod = CFG->GetInt( "bot_matchmakingmethod", 1 );
 	m_MapGameType = CFG->GetUInt( "bot_mapgametype", 0 );
-	m_GamelistRefreshInterval = CFG->GetInt( "bot_gamelistrefresh", 10000 );
+	m_GamelistRefreshInterval = CFG->GetInt( "bot_gamelistrefresh", 10 );
 	m_GamelistAutoRefresh = CFG->GetInt( "bot_gamelistautorefresh", false );
 }
 
