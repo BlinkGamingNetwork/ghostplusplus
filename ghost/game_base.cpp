@@ -193,6 +193,9 @@ CBaseGame :: ~CBaseGame( )
 		delete m_Actions.front( );
 		m_Actions.pop( );
 	}
+	
+	// delete game from the database
+	DoGameUpdate( true );
 }
 
 uint32_t CBaseGame :: GetNextTimedActionTicks( )
