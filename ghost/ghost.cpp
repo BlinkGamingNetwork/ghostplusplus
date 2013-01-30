@@ -500,6 +500,7 @@ CGHost :: CGHost( CConfig *CFG )
 	m_AllGamesFinished = false;
 	m_AllGamesFinishedTime = 0;
 	m_TFT = CFG->GetInt( "bot_tft", 1 ) == 0 ? false : true;
+	m_CallableCommandList = NULL;
 
 	if( m_TFT )
 		CONSOLE_Print( "[GHOST] acting as Warcraft III: The Frozen Throne" );
