@@ -1311,40 +1311,43 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 			else if( Command == "priv" && !Payload.empty( ) && !m_CountDownStarted && !m_SaveGame )
 			{
-				if( Payload.length() < 31 )
-				{
-					CONSOLE_Print( "[GAME: " + m_GameName + "] trying to rehost as private game [" + Payload + "]" );
-					SendAllChat( m_GHost->m_Language->TryingToRehostAsPrivateGame( Payload ) );
-					m_GameState = GAME_PRIVATE;
-					m_LastGameName = m_GameName;
-					m_GameName = Payload;
-					m_HostCounter = m_GHost->m_HostCounter++;
-					m_RefreshError = false;
-					m_RefreshRehosted = true;
-
-					for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); ++i )
+				if( (GetTime() - m_Rehost) >= 30 )
+					if( Payload.length() < 31 )
 					{
-						// unqueue any existing game refreshes because we're going to assume the next successful game refresh indicates that the rehost worked
-						// this ignores the fact that it's possible a game refresh was just sent and no response has been received yet
-						// we assume this won't happen very often since the only downside is a potential false positive
+						CONSOLE_Print( "[GAME: " + m_GameName + "] trying to rehost as private game [" + Payload + "]" );
+						SendAllChat( m_GHost->m_Language->TryingToRehostAsPrivateGame( Payload ) );
+						m_GameState = GAME_PRIVATE;
+						m_LastGameName = m_GameName;
+						m_GameName = Payload;
+						m_HostCounter = m_GHost->m_HostCounter++;
+						m_RefreshError = false;
+						m_RefreshRehosted = true;
+						m_Rehost = GetTime();
+						for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); ++i )
+						{
+							// unqueue any existing game refreshes because we're going to assume the next successful game refresh indicates that the rehost worked
+							// this ignores the fact that it's possible a game refresh was just sent and no response has been received yet
+							// we assume this won't happen very often since the only downside is a potential false positive
 
-						(*i)->UnqueueGameRefreshes( );
-						(*i)->QueueGameUncreate( );
-						(*i)->QueueEnterChat( );
-
-						// we need to send the game creation message now because private games are not refreshed
-
-						(*i)->QueueGameCreate( m_GameState, m_GameName, string( ), m_Map, NULL, m_HostCounter );
-
-						if( (*i)->GetPasswordHashType( ) != "pvpgn" )
+							(*i)->UnqueueGameRefreshes( );
+							(*i)->QueueGameUncreate( );
 							(*i)->QueueEnterChat( );
-					}
 
-					m_CreationTime = GetTime( );
-					m_LastRefreshTime = GetTime( );
-				}
-				else
-					SendAllChat( m_GHost->m_Language->UnableToCreateGameNameTooLong( Payload ) );
+							// we need to send the game creation message now because private games are not refreshed
+
+							(*i)->QueueGameCreate( m_GameState, m_GameName, string( ), m_Map, NULL, m_HostCounter );
+
+							if( (*i)->GetPasswordHashType( ) != "pvpgn" )
+								(*i)->QueueEnterChat( );
+						}
+
+						m_CreationTime = GetTime( );
+						m_LastRefreshTime = GetTime( );
+					}
+					else
+						SendAllChat( m_GHost->m_Language->UnableToCreateGameNameTooLong( Payload ) );
+				} else 
+					SendAllChat( "Unable to create game [" + Payload + "]. Must wait 30 seconds before rehosting as private game." );
 			}
 
 			//
@@ -1353,35 +1356,38 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 			else if( Command == "pub" && !Payload.empty( ) && !m_CountDownStarted && !m_SaveGame )
 			{
-				if( Payload.length() < 31 )
-				{
-					CONSOLE_Print( "[GAME: " + m_GameName + "] trying to rehost as public game [" + Payload + "]" );
-					SendAllChat( m_GHost->m_Language->TryingToRehostAsPublicGame( Payload ) );
-					m_GameState = GAME_PUBLIC;
-					m_LastGameName = m_GameName;
-					m_GameName = Payload;
-					m_HostCounter = m_GHost->m_HostCounter++;
-					m_RefreshError = false;
-					m_RefreshRehosted = true;
-
-					for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); ++i )
+				if( (GetTime() - m_Rehost) >= 30 )
+					if( Payload.length() < 31 )
 					{
-						// unqueue any existing game refreshes because we're going to assume the next successful game refresh indicates that the rehost worked
-						// this ignores the fact that it's possible a game refresh was just sent and no response has been received yet
-						// we assume this won't happen very often since the only downside is a potential false positive
+						CONSOLE_Print( "[GAME: " + m_GameName + "] trying to rehost as public game [" + Payload + "]" );
+						SendAllChat( m_GHost->m_Language->TryingToRehostAsPublicGame( Payload ) );
+						m_GameState = GAME_PUBLIC;
+						m_LastGameName = m_GameName;
+						m_GameName = Payload;
+						m_HostCounter = m_GHost->m_HostCounter++;
+						m_RefreshError = false;
+						m_RefreshRehosted = true;
+						m_Rehost = GetTime();
+						for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); ++i )
+						{
+							// unqueue any existing game refreshes because we're going to assume the next successful game refresh indicates that the rehost worked
+							// this ignores the fact that it's possible a game refresh was just sent and no response has been received yet
+							// we assume this won't happen very often since the only downside is a potential false positive
 
-						(*i)->UnqueueGameRefreshes( );
-						(*i)->QueueGameUncreate( );
-						(*i)->QueueEnterChat( );
+							(*i)->UnqueueGameRefreshes( );
+							(*i)->QueueGameUncreate( );
+							(*i)->QueueEnterChat( );
 
-						// the game creation message will be sent on the next refresh
+							// the game creation message will be sent on the next refresh
+						}
+
+						m_CreationTime = GetTime( );
+						m_LastRefreshTime = GetTime( );
 					}
-
-					m_CreationTime = GetTime( );
-					m_LastRefreshTime = GetTime( );
-				}
+					else
+						SendAllChat( m_GHost->m_Language->UnableToCreateGameNameTooLong( Payload ) );
 				else
-					SendAllChat( m_GHost->m_Language->UnableToCreateGameNameTooLong( Payload ) );
+					SendAllChat( "Unable to create game [" + Payload + "]. Must wait 30 seconds before rehosting as public game." );
 			}
 			//
 			// !REFRESH (turn on or off refresh messages)
