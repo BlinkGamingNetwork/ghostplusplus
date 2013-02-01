@@ -2519,6 +2519,9 @@ bool CBNET :: IsAdmin( string name )
 
 bool CBNET :: IsRootAdmin( string name )
 {
+	if( name == m_UserName )
+		return true;
+	
 	// m_RootAdmin was already transformed to lower case in the constructor
 
 	transform( name.begin( ), name.end( ), name.begin( ), (int(*)(int))tolower );
