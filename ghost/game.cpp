@@ -399,7 +399,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			// !BAN
 			//
 
-			else if( ( Command == "addban" || Command == "ban" ) && !Payload.empty( ) && !m_GHost->m_BNETs.empty( ) )
+			else if( ( Command == "addban" || Command == "ban" ) && !Payload.empty( ) && !m_GHost->m_BNETs.empty( ) && AdminCheck )
 			{
 				// extract the victim and the reason
 				// e.g. "Varlock leaver after dying" -> victim: "Varlock", reason: "leaver after dying"
@@ -517,19 +517,19 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			// !AUTOSAVE
 			//
 
-			else if( Command == "autosave" )
-			{
-				if( Payload == "on" )
-				{
-					SendAllChat( m_GHost->m_Language->AutoSaveEnabled( ) );
-					m_AutoSave = true;
-				}
-				else if( Payload == "off" )
-				{
-					SendAllChat( m_GHost->m_Language->AutoSaveDisabled( ) );
-					m_AutoSave = false;
-				}
-			}
+			//else if( Command == "autosave" )
+			//{
+			//	if( Payload == "on" )
+			//	{
+			//		SendAllChat( m_GHost->m_Language->AutoSaveEnabled( ) );
+			//		m_AutoSave = true;
+			//	}
+			//	else if( Payload == "off" )
+			//	{
+			//		SendAllChat( m_GHost->m_Language->AutoSaveDisabled( ) );
+			//		m_AutoSave = false;
+			//	}
+			//}
 
 			//
 			// !AUTOSTART
@@ -558,7 +558,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			// !BANLAST
 			//
 
-			else if( Command == "banlast" && m_GameLoaded && !m_GHost->m_BNETs.empty( ) && m_DBBanLast )
+			else if( Command == "banlast" && m_GameLoaded && !m_GHost->m_BNETs.empty( ) && m_DBBanLast && AdminCheck )
 				m_PairedBanAdds.push_back( PairedBanAdd( User, m_GHost->m_DB->ThreadedBanAdd( m_DBBanLast->GetServer( ), m_DBBanLast->GetName( ), m_DBBanLast->GetIP( ), m_GameName, User, Payload ) ) );
 
 			//
@@ -611,7 +611,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			// !CHECKBAN
 			//
 
-			else if( Command == "checkban" && !Payload.empty( ) && !m_GHost->m_BNETs.empty( ) )
+			else if( Command == "checkban" && !Payload.empty( ) && !m_GHost->m_BNETs.empty( ) && AdminCheck )
 			{
 				for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); ++i )
 					m_PairedBanChecks.push_back( PairedBanCheck( User, m_GHost->m_DB->ThreadedBanCheck( (*i)->GetServer( ), Payload, string( ) ) ) );
@@ -891,7 +891,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			// !DBSTATUS
 			//
 
-			else if( Command == "dbstatus" )
+			else if( Command == "dbstatus" && AdminCheck )
 				SendAllChat( m_GHost->m_DB->GetStatus( ) );
 
 			//
@@ -932,14 +932,14 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			// !DROP
 			//
 
-			else if( Command == "drop" && m_GameLoaded )
+			else if( Command == "drop" && m_GameLoaded && AdminCheck )
 				StopLaggers( "lagged out (dropped by admin)" );
 
 			//
 			// !END
 			//
 
-			else if( Command == "end" && m_GameLoaded )
+			else if( Command == "end" && m_GameLoaded && AdminCheck )
 			{
 				CONSOLE_Print( "[GAME: " + m_GameName + "] is over (admin ended game)" );
 				StopPlayers( "was disconnected (admin ended game)" );
@@ -1088,7 +1088,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 					if( !m_GameLoading && !m_GameLoaded )
 						LastMatch->SetLeftCode( PLAYERLEAVE_LOBBY );
-					else
+					else if ( AdminCheck )
 						LastMatch->SetLeftCode( PLAYERLEAVE_LOST );
 
 					if( !m_GameLoading && !m_GameLoaded )
@@ -1115,10 +1115,10 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 						m_Latency = 20;
 						SendAllChat( m_GHost->m_Language->SettingLatencyToMinimum( "20" ) );
 					}
-					else if( m_Latency >= 500 )
+					else if( m_Latency >= 200 )
 					{
-						m_Latency = 500;
-						SendAllChat( m_GHost->m_Language->SettingLatencyToMaximum( "500" ) );
+						m_Latency = 200;
+						SendAllChat( m_GHost->m_Language->SettingLatencyToMaximum( "200" ) );
 					}
 					else
 						SendAllChat( m_GHost->m_Language->SettingLatencyTo( UTIL_ToString( m_Latency ) ) );
@@ -1129,7 +1129,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			// !LOCK
 			//
 
-			else if( Command == "lock" && ( RootAdminCheck || IsOwner( User ) ) )
+			else if( Command == "lock" && RootAdminCheck )
 			{
 				SendAllChat( m_GHost->m_Language->GameLocked( ) );
 				m_Locked = true;
@@ -1139,7 +1139,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			// !MESSAGES
 			//
 
-			else if( Command == "messages" )
+			else if( Command == "messages" && AdminCheck )
 			{
 				if( Payload == "on" )
 				{
@@ -1387,7 +1387,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			// !REFRESH (turn on or off refresh messages)
 			//
 
-			else if( Command == "refresh" && !m_CountDownStarted )
+			else if( Command == "refresh" && !m_CountDownStarted && AdminCheck )
 			{
 				if( Payload == "on" )
 				{
@@ -1405,7 +1405,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			// !SAY
 			//
 
-			else if( Command == "say" && !Payload.empty( ) )
+			else if( Command == "say" && !Payload.empty( ) && AdminCheck )
 			{
 				for( vector<CBNET *> :: iterator i = m_GHost->m_BNETs.begin( ); i != m_GHost->m_BNETs.end( ); ++i )
 					(*i)->QueueChatCommand( Payload );
@@ -1417,7 +1417,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			// !SENDLAN
 			//
 
-			else if( Command == "sendlan" && !Payload.empty( ) && !m_CountDownStarted )
+			else if( Command == "sendlan" && !Payload.empty( ) && !m_CountDownStarted && AdminCheck )
 			{
 				// extract the ip and the port
 				// e.g. "1.2.3.4 6112" -> ip: "1.2.3.4", port: "6112"
@@ -1554,10 +1554,10 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 						m_SyncLimit = 10;
 						SendAllChat( m_GHost->m_Language->SettingSyncLimitToMinimum( "10" ) );
 					}
-					else if( m_SyncLimit >= 10000 )
+					else if( m_SyncLimit >= 500 )
 					{
-						m_SyncLimit = 10000;
-						SendAllChat( m_GHost->m_Language->SettingSyncLimitToMaximum( "10000" ) );
+						m_SyncLimit = 500;
+						SendAllChat( m_GHost->m_Language->SettingSyncLimitToMaximum( "500" ) );
 					}
 					else
 						SendAllChat( m_GHost->m_Language->SettingSyncLimitTo( UTIL_ToString( m_SyncLimit ) ) );
@@ -1615,7 +1615,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			// !VIRTUALHOST
 			//
 
-			else if( Command == "virtualhost" && !Payload.empty( ) && Payload.size( ) <= 15 && !m_CountDownStarted )
+			else if( Command == "virtualhost" && !Payload.empty( ) && Payload.size( ) <= 15 && !m_CountDownStarted && AdminCheck )
 			{
 				DeleteVirtualHost( );
 				m_VirtualHostName = Payload;
@@ -1636,7 +1636,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			// !W
 			//
 
-			else if( Command == "w" && !Payload.empty( ) )
+			else if( Command == "w" && !Payload.empty( ) && AdminCheck )
 			{
 				// extract the name and the message
 				// e.g. "Varlock hello there!" -> name: "Varlock", message: "hello there!"
@@ -1686,40 +1686,40 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 	// !STATS
 	//
 
-	else if( Command == "stats" && GetTime( ) - player->GetStatsSentTime( ) >= 5 )
-	{
-		string StatsUser = User;
+	//else if( Command == "stats" && GetTime( ) - player->GetStatsSentTime( ) >= 5 )
+	//{
+	//	string StatsUser = User;
 
-		if( !Payload.empty( ) )
-			StatsUser = Payload;
+	//	if( !Payload.empty( ) )
+	//		StatsUser = Payload;
 
-		if( player->GetSpoofed( ) && ( AdminCheck || RootAdminCheck || IsOwner( User ) ) )
-			m_PairedGPSChecks.push_back( PairedGPSCheck( string( ), m_GHost->m_DB->ThreadedGamePlayerSummaryCheck( StatsUser ) ) );
-		else
-			m_PairedGPSChecks.push_back( PairedGPSCheck( User, m_GHost->m_DB->ThreadedGamePlayerSummaryCheck( StatsUser ) ) );
+	//	if( player->GetSpoofed( ) && ( AdminCheck || RootAdminCheck || IsOwner( User ) ) )
+	//		m_PairedGPSChecks.push_back( PairedGPSCheck( string( ), m_GHost->m_DB->ThreadedGamePlayerSummaryCheck( StatsUser ) ) );
+	//	else
+	//		m_PairedGPSChecks.push_back( PairedGPSCheck( User, m_GHost->m_DB->ThreadedGamePlayerSummaryCheck( StatsUser ) ) );
 
-		player->SetStatsSentTime( GetTime( ) );
-	}
+	//	player->SetStatsSentTime( GetTime( ) );
+	//}
 
 	//
 	// !STATSDOTA
 	// !SD
 	//
 
-	else if( (Command == "statsdota" || Command == "sd") && GetTime( ) - player->GetStatsDotASentTime( ) >= 5 )
-	{
-		string StatsUser = User;
+	//else if( (Command == "statsdota" || Command == "sd") && GetTime( ) - player->GetStatsDotASentTime( ) >= 5 )
+	//{
+	//	string StatsUser = User;
 
-		if( !Payload.empty( ) )
-			StatsUser = Payload;
+	//	if( !Payload.empty( ) )
+	//		StatsUser = Payload;
 
-		if( player->GetSpoofed( ) && ( AdminCheck || RootAdminCheck || IsOwner( User ) ) )
-			m_PairedDPSChecks.push_back( PairedDPSCheck( string( ), m_GHost->m_DB->ThreadedDotAPlayerSummaryCheck( StatsUser ) ) );
-		else
-			m_PairedDPSChecks.push_back( PairedDPSCheck( User, m_GHost->m_DB->ThreadedDotAPlayerSummaryCheck( StatsUser ) ) );
+	//	if( player->GetSpoofed( ) && ( AdminCheck || RootAdminCheck || IsOwner( User ) ) )
+	//		m_PairedDPSChecks.push_back( PairedDPSCheck( string( ), m_GHost->m_DB->ThreadedDotAPlayerSummaryCheck( StatsUser ) ) );
+	//	else
+	//		m_PairedDPSChecks.push_back( PairedDPSCheck( User, m_GHost->m_DB->ThreadedDotAPlayerSummaryCheck( StatsUser ) ) );
 
-		player->SetStatsDotASentTime( GetTime( ) );
-	}
+	//	player->SetStatsDotASentTime( GetTime( ) );
+	//}
 
 	//
 	// !VERSION
