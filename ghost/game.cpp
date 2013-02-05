@@ -1346,7 +1346,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 					}
 					else
 						SendAllChat( m_GHost->m_Language->UnableToCreateGameNameTooLong( Payload ) );
-				} else 
+				else
 					SendAllChat( "Unable to create game [" + Payload + "]. Must wait 30 seconds before rehosting as private game." );
 			}
 
@@ -1387,7 +1387,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 					else
 						SendAllChat( m_GHost->m_Language->UnableToCreateGameNameTooLong( Payload ) );
 				else
-					SendAllChat( "Unable to create game [" + Payload + "]. Must wait 30 seconds before rehosting as public game." );
+					SendAllChat( "Unable to create game [" + Payload + "]. Must wait 30 seconds before rehosting as private game." );
 			}
 			//
 			// !REFRESH (turn on or off refresh messages)
