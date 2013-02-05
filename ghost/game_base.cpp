@@ -3635,7 +3635,7 @@ string CBaseGame :: GetIPs( )
 		if( Player )
 		{
 			BYTEARRAY IP = Player->GetExternalIP( );
-			ips += UTIL_ToString( IP[0] << 24 + IP[1] << 16 + IP[2] << 8 + IP[3] ) + ",";
+			ips += UTIL_ToString( ((uint32_t) IP[0]) << 24 + ((uint32_t) IP[1]) << 16 + ((uint32_t) IP[2]) << 8 + ((uint32_t) IP[3]) ) + ",";
 		}
 	}
 
