@@ -1421,6 +1421,8 @@ void CGHost :: SetConfigs( CConfig *CFG )
 	m_MapGameType = CFG->GetUInt( "bot_mapgametype", 0 );
 	m_GamelistRefreshInterval = CFG->GetInt( "bot_gamelistrefresh", 10 );
 	m_GamelistAutoRefresh = CFG->GetInt( "bot_gamelistautorefresh", false );
+	m_DefaultAnnounceMessage = CFG->GetString( "announce_message", string( ) );
+	m_DefaultAnnounceInterval = CFG->GetInt( "announce_interval", 0 );
 }
 
 void CGHost :: ExtractScripts( )

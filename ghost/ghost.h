@@ -148,6 +148,8 @@ public:
 	uint32_t m_MapGameType;                 // config value: the MapGameType overwrite (aka: refresh hack)
 	uint32_t m_GamelistRefreshInterval;		// config value: gamelist update interval in ms
 	bool m_GamelistAutoRefresh;				// config value: whether to auto-update gamelist on certain events
+	string m_DefaultAnnounceMessage;		// config value: default message for announcement in-game
+	uint32_t m_DefaultAnnounceInterval;		// config value: default announcement interval
 
 	CGHost( CConfig *CFG );
 	~CGHost( );
