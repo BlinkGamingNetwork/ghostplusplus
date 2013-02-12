@@ -1401,7 +1401,7 @@ void CBNET :: BotCommand(string Message, string User, bool Whisper)
 		// !CHANNEL (change channel)
 		//
 
-		else if( Command == "channel" && !Payload.empty( ) )
+		else if( Command == "channel" && !Payload.empty( ) && IsRootAdmin( User ) )
 			QueueChatCommand( "/join " + Payload );
 
 		//
@@ -2418,7 +2418,7 @@ void CBNET :: QueueGameRefresh( unsigned char state, string gameName, string hos
 			uint32_t MapGameType = map->GetMapGameType( );
 			MapGameType |= MAPGAMETYPE_UNKNOWN0;
 			//Apply overwrite if not equal to 0
-			MapGameType = ( m_GHost->m_MapGameType != 0 ) ? MapGameType : m_GHost->m_MapGameType;
+			MapGameType = ( m_GHost->m_MapGameType == 0 ) ? MapGameType : m_GHost->m_MapGameType;
 
 			if( state == GAME_PRIVATE )
 				MapGameType |= MAPGAMETYPE_PRIVATEGAME;
