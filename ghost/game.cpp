@@ -939,10 +939,14 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			// !END
 			//
 
-			else if( Command == "end" && m_GameLoaded && AdminCheck )
+			else if( Command == "end" && m_GameLoaded )
 			{
-				CONSOLE_Print( "[GAME: " + m_GameName + "] is over (admin ended game)" );
-				StopPlayers( "was disconnected (admin ended game)" );
+				if ( RootAdminCheck ) {
+					CONSOLE_Print( "[GAME: " + m_GameName + "] is over (admin ended game)" );
+					StopPlayers( "was disconnected (admin ended game)" );
+				} else {
+
+				}
 			}
 
 			//
@@ -1168,6 +1172,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 				{
 					SendAllChat( m_GHost->m_Language->MutedPlayer( LastMatch->GetName( ), User ) );
 					LastMatch->SetMuted( true );
+					LastMatch->SetMutedTime( GetTime( ) );
 				}
 				else
 					SendAllChat( m_GHost->m_Language->UnableToMuteFoundMoreThanOneMatch( Payload ) );
@@ -1181,6 +1186,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			{
 				SendAllChat( m_GHost->m_Language->GlobalChatMuted( ) );
 				m_MuteAll = true;
+				m_MuteAllTime = GetTime( );
 			}
 
 			//

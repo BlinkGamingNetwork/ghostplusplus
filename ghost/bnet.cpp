@@ -1111,7 +1111,7 @@ void CBNET :: BotCommand(string Message, string User, bool Whisper)
 
 	transform( Command.begin( ), Command.end( ), Command.begin( ), (int(*)(int))tolower );
 
-	if( IsAdmin( User ) || IsRootAdmin( User ) )
+	if( IsRootAdmin( User ) )
 	{
 		CONSOLE_Print( "[BNET: " + m_ServerAlias + "] admin [" + User + "] sent command [" + Message + "]" );
 

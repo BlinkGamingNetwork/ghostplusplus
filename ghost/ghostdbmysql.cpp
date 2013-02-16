@@ -106,7 +106,7 @@ void CGHostDBMySQL :: RecoverCallable( CBaseCallable *callable )
 
 	if( MySQLCallable )
 	{
-		if( m_IdleConnections.size( ) > 1 )
+		if( m_IdleConnections.size( ) > 2 || !MySQLCallable->GetError( ).empty( ) )
 		{
 			mysql_close( (MYSQL *)MySQLCallable->GetConnection( ) );
                         --m_NumConnections;
@@ -669,7 +669,7 @@ uint32_t MySQLBanCount( void *conn, string *error, uint32_t botid, string server
 {
 	string EscServer = MySQLEscapeString( conn, server );
 	uint32_t Count = 0;
-	string Query = "SELECT COUNT(*) FROM bans WHERE server='" + EscServer + "'";
+	string Query = "SELECT COUNT(*) FROM bans WHERE server='" + EscServer + "' AND active = 1 AND expire > NOW()";
 
 	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
 		*error = mysql_error( (MYSQL *)conn );
@@ -705,9 +705,9 @@ CDBBan *MySQLBanCheck( void *conn, string *error, uint32_t botid, string server,
 	string Query;
 
 	if( ip.empty( ) )
-		Query = "SELECT name, INET_NTOA(ip), DATE(date), gamename, admin, reason FROM bans WHERE server='" + EscServer + "' AND name='" + EscUser + "'";
+		Query = "SELECT name, INET_NTOA(ip), DATE(date), gamename, admin, reason FROM bans WHERE server='" + EscServer + "' AND name='" + EscUser + "' AND active = 1 AND expire > NOW()";
 	else
-		Query = "SELECT name, INET_NTOA(ip), DATE(date), gamename, admin, reason FROM bans WHERE (server='" + EscServer + "' AND name='" + EscUser + "') OR ip=INET_ATON('" + EscIP + "')";
+		Query = "SELECT name, INET_NTOA(ip), DATE(date), gamename, admin, reason FROM bans WHERE (server='" + EscServer + "' AND name='" + EscUser + "') OR ip=INET_ATON('" + EscIP + "') AND active = 1 AND expire > NOW()";
 
 	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
 		*error = mysql_error( (MYSQL *)conn );
@@ -743,7 +743,7 @@ bool MySQLBanAdd( void *conn, string *error, uint32_t botid, string server, stri
 	string EscAdmin = MySQLEscapeString( conn, admin );
 	string EscReason = MySQLEscapeString( conn, reason );
 	bool Success = false;
-	string Query = "INSERT INTO bans ( botid, server, name, ip, date, gamename, admin, reason ) VALUES ( " + UTIL_ToString( botid ) + ", '" + EscServer + "', '" + EscUser + "', INET_ATON('" + EscIP + "'), CURDATE( ), '" + EscGameName + "', '" + EscAdmin + "', '" + EscReason + "' )";
+	string Query = "INSERT INTO bans ( botid, server, name, ip, date, gamename, admin, reason ) VALUES ( " + UTIL_ToString( botid ) + ", '" + EscServer + "', '" + EscUser + "', INET_ATON('" + EscIP + "'), NOW( ), '" + EscGameName + "', '" + EscAdmin + "', '" + EscReason + "' )";
 
 	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
 		*error = mysql_error( (MYSQL *)conn );
@@ -788,7 +788,7 @@ vector<CDBBan *> MySQLBanList( void *conn, string *error, uint32_t botid, string
 {
 	string EscServer = MySQLEscapeString( conn, server );
 	vector<CDBBan *> BanList;
-	string Query = "SELECT name, INET_NTOA(ip), DATE(date), gamename, admin, reason FROM bans WHERE server='" + EscServer + "'";
+	string Query = "SELECT name, INET_NTOA(ip), DATE(date), gamename, admin, reason FROM bans WHERE server='" + EscServer + "' AND active = 1 AND expire > NOW()";
 
 	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
 		*error = mysql_error( (MYSQL *)conn );

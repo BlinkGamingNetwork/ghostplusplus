@@ -123,6 +123,8 @@ private:
 	bool m_KickVote;							// if the player voted to kick a player or not
 	bool m_StartVote;// if the player voted to start or not
 	bool m_Muted;								// if the player is muted or not
+	uint32_t m_MutedTime;
+	uint32_t m_AntiSpam;
 	bool m_LeftMessageSent;						// if the playerleave message has been sent or not
 	bool m_GProxy;								// if the player is using GProxy++
 	bool m_GProxyDisconnectNoticeSent;			// if a disconnection notice has been sent or not when using GProxy++
@@ -174,6 +176,8 @@ public:
 	bool GetKickVote( )							{ return m_KickVote; }
 	bool GetStartVote( ){ return m_StartVote; }
 	bool GetMuted( )							{ return m_Muted; }
+	uint32_t GetMutedTime( )					{ return m_MutedTime; }
+	uint32_t GetAntiSpam( )						{ return m_AntiSpam; }
 	bool GetLeftMessageSent( )					{ return m_LeftMessageSent; }
 	bool GetGProxy( )							{ return m_GProxy; }
 	bool GetGProxyDisconnectNoticeSent( )		{ return m_GProxyDisconnectNoticeSent; }
@@ -206,6 +210,9 @@ public:
 	void SetKickVote( bool nKickVote )												{ m_KickVote = nKickVote; }
 	void SetStartVote( bool nStartVote ){ m_StartVote = nStartVote; }
 	void SetMuted( bool nMuted )													{ m_Muted = nMuted; }
+	void SetMutedTime( uint32_t nMutedTime )										{ m_MutedTime = nMutedTime; }
+	void AddAntiSpam( uint32_t nAntiSpam )											{ m_AntiSpam += nAntiSpam; }
+	void SetAntiSpam( uint32_t nAntiSpam )											{ m_AntiSpam = nAntiSpam; }
 	void SetLeftMessageSent( bool nLeftMessageSent )								{ m_LeftMessageSent = nLeftMessageSent; }
 	void SetGProxyDisconnectNoticeSent( bool nGProxyDisconnectNoticeSent )			{ m_GProxyDisconnectNoticeSent = nGProxyDisconnectNoticeSent; }
 

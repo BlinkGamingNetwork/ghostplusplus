@@ -52,6 +52,7 @@ protected:
 	vector<CGameSlot> m_Slots;						// vector of slots
 	vector<CPotentialPlayer *> m_Potentials;		// vector of potential players (connections that haven't sent a W3GS_REQJOIN packet yet)
 	vector<CGamePlayer *> m_Players;				// vector of players
+	vector<CGamePlayer *> m_DeletedPlayers;			// vector of players
 	vector<CCallableScoreCheck *> m_ScoreChecks;
 	queue<CIncomingAction *> m_Actions;				// queue of actions to be sent
 	vector<string> m_Reserved;						// vector of player names with reserved slots (from the !hold command)
@@ -120,6 +121,8 @@ protected:
 	bool m_RefreshError;							// if there was an error refreshing the game
 	bool m_RefreshRehosted;							// if we just rehosted and are waiting for confirmation that it was successful
 	bool m_MuteAll;									// if we should stop forwarding ingame chat messages targeted for all players or not
+	uint32_t m_MuteAllTime;							// auto unmute after 30 seconds
+	uint32_t m_AntiSpamTime;						// Decrease by 1 every second
 	bool m_MuteLobby;								// if we should stop forwarding lobby chat messages
 	bool m_CountDownStarted;						// if the game start countdown has started or not
 	bool m_GameLoading;								// if the game is currently loading or not
@@ -241,7 +244,9 @@ public:
 
 	virtual unsigned char GetSIDFromPID( unsigned char PID );
 	virtual CGamePlayer *GetPlayerFromPID( unsigned char PID );
+	virtual CGamePlayer *GetPlayerFromPID2( unsigned char PID );
 	virtual CGamePlayer *GetPlayerFromSID( unsigned char SID );
+	virtual CGamePlayer *GetPlayerFromSID2( unsigned char PID );
 	virtual CGamePlayer *GetPlayerFromName( string name, bool sensitive );
 	virtual uint32_t GetPlayerFromNamePartial( string name, CGamePlayer **player );
 	virtual CGamePlayer *GetPlayerFromColour( unsigned char colour );
