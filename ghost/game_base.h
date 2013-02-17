@@ -52,6 +52,7 @@ protected:
 	vector<CGameSlot> m_Slots;						// vector of slots
 	vector<CPotentialPlayer *> m_Potentials;		// vector of potential players (connections that haven't sent a W3GS_REQJOIN packet yet)
 	vector<CGamePlayer *> m_Players;				// vector of players
+	vector<CGamePlayer *> m_DeletedPlayers;			// vector of deleted players
 	vector<CCallableScoreCheck *> m_ScoreChecks;
 	queue<CIncomingAction *> m_Actions;				// queue of actions to be sent
 	vector<string> m_Reserved;						// vector of player names with reserved slots (from the !hold command)
@@ -241,7 +242,9 @@ public:
 
 	virtual unsigned char GetSIDFromPID( unsigned char PID );
 	virtual CGamePlayer *GetPlayerFromPID( unsigned char PID );
+	virtual CGamePlayer *GetPlayerFromPID2( unsigned char PID );
 	virtual CGamePlayer *GetPlayerFromSID( unsigned char SID );
+	virtual CGamePlayer *GetPlayerFromSID2( unsigned char PID );
 	virtual CGamePlayer *GetPlayerFromName( string name, bool sensitive );
 	virtual uint32_t GetPlayerFromNamePartial( string name, CGamePlayer **player );
 	virtual CGamePlayer *GetPlayerFromColour( unsigned char colour );

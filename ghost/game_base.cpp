@@ -187,6 +187,9 @@ CBaseGame :: ~CBaseGame( )
         for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); ++i )
 		delete *i;
 
+		for( vector<CGamePlayer *> :: iterator i = m_DeletedPlayers.begin( ); i != m_DeletedPlayers.end( ); ++i )
+		delete *i;
+
         for( vector<CCallableScoreCheck *> :: iterator i = m_ScoreChecks.begin( ); i != m_ScoreChecks.end( ); ++i )
 		m_GHost->m_Callables.push_back( *i );
 
@@ -352,8 +355,13 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 	{
 		if( (*i)->Update( fd ) )
 		{
+			if ( m_GameLoading || m_GameLoaded ) {
+				CGamePlayer *DeletedPlayer = GetPlayerFromPID( (*i)->GetPID( ) );
+				m_DeletedPlayers.push_back( DeletedPlayer );
+			}
 			EventPlayerDeleted( *i );
-			delete *i;
+			if ( !m_GameLoading && !m_GameLoaded )
+				delete *i;
 			i = m_Players.erase( i );
 		}
 		else
@@ -589,13 +597,13 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 		m_LastAnnounceTime = GetTime( );
 	}
 
-	// kick players who don't spoof check within 20 seconds when spoof checks are required and the game is autohosted
+	// kick players who don't spoof check within 30 seconds when spoof checks are required and the game is autohosted
 
 	if( !m_CountDownStarted && m_GHost->m_RequireSpoofChecks && m_GameState == GAME_PUBLIC && !m_GHost->m_AutoHostGameName.empty( ) && m_GHost->m_AutoHostMaximumGames != 0 && m_GHost->m_AutoHostAutoStartPlayers != 0 && m_AutoStartPlayers != 0 )
 	{
                 for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); ++i )
 		{
-			if( !(*i)->GetSpoofed( ) && GetTime( ) - (*i)->GetJoinTime( ) >= 20 )
+			if( !(*i)->GetSpoofed( ) && GetTime( ) - (*i)->GetJoinTime( ) >= 30 )
 			{
 				(*i)->SetDeleteMe( true );
 				(*i)->SetLeftReason( m_GHost->m_Language->WasKickedForNotSpoofChecking( ) );
@@ -664,7 +672,10 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 			FinishedLoading = (*i)->GetFinishedLoading( );
 
 			if( !FinishedLoading )
-				break;
+				if ( GetTicks( ) - m_StartedLoadingTicks > 240000 ) {
+					(*i)->SetDeleteMe( true );
+					(*i)->SetLeftCode( PLAYERLEAVE_LOBBY );
+				}
 		}
 
 		if( FinishedLoading )
@@ -1983,7 +1994,7 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 	// since so many people have trouble with this feature we now use the JoinedRealm to determine LAN status
 
 	if( JoinedRealm.empty( ) )
-		Player->SetSpoofed( true );
+		Player->SetSpoofed( false );
 
 	Player->SetWhoisShouldBeSent( m_GHost->m_SpoofChecks == 1 || ( m_GHost->m_SpoofChecks == 2 && AnyAdminCheck ) );
 	m_Players.push_back( Player );
@@ -2411,7 +2422,7 @@ void CBaseGame :: EventPlayerJoinedWithScore( CPotentialPlayer *potential, CInco
 	// since so many people have trouble with this feature we now use the JoinedRealm to determine LAN status
 
 	if( JoinedRealm.empty( ) )
-		Player->SetSpoofed( true );
+		Player->SetSpoofed( false );
 
 	Player->SetWhoisShouldBeSent( m_GHost->m_SpoofChecks == 1 || ( m_GHost->m_SpoofChecks == 2 && AnyAdminCheck ) );
 	Player->SetScore( score );
@@ -3506,10 +3517,37 @@ CGamePlayer *CBaseGame :: GetPlayerFromPID( unsigned char PID )
 	return NULL;
 }
 
+CGamePlayer *CBaseGame :: GetPlayerFromPID2( unsigned char PID )
+{
+
+	for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); ++i )
+	{
+		if( (*i)->GetPID( ) == PID )
+			return *i;
+	}
+
+	for( vector<CGamePlayer *> :: iterator i = m_DeletedPlayers.begin( ); i != m_DeletedPlayers.end( ); ++i )
+	{
+		if( (*i)->GetPID( ) == PID )
+			return *i;
+	}
+ 	
+	return NULL;
+
+}
+
 CGamePlayer *CBaseGame :: GetPlayerFromSID( unsigned char SID )
 {
 	if( SID < m_Slots.size( ) )
 		return GetPlayerFromPID( m_Slots[SID].GetPID( ) );
+
+	return NULL;
+}
+
+CGamePlayer *CBaseGame :: GetPlayerFromSID2( unsigned char SID )
+{
+	if( SID < m_Slots.size( ) )
+		return GetPlayerFromPID2( m_Slots[SID].GetPID( ) );
 
 	return NULL;
 }
@@ -3587,7 +3625,7 @@ string CBaseGame :: GetUsernames( )
 	
 	for( unsigned char i = 0; i < m_Slots.size( ); ++i )
 	{
-		CGamePlayer *Player = GetPlayerFromSID( i );
+		CGamePlayer *Player = GetPlayerFromSID2( i );
 
 		if( Player )
 			usernames += Player->GetName( ) + ",";
@@ -3602,7 +3640,7 @@ string CBaseGame :: GetServers( )
 	
 	for( unsigned char i = 0; i < m_Slots.size( ); ++i )
 	{
-		CGamePlayer *Player = GetPlayerFromSID( i );
+		CGamePlayer *Player = GetPlayerFromSID2( i );
 
 		if( Player )
 			servers += Player->GetJoinedRealm( ) + ",";
@@ -3617,7 +3655,7 @@ string CBaseGame :: GetPings( )
 	
 	for( unsigned char i = 0; i < m_Slots.size( ); ++i )
 	{
-		CGamePlayer *Player = GetPlayerFromSID( i );
+		CGamePlayer *Player = GetPlayerFromSID2( i );
 
 		if( Player )
 			pings += UTIL_ToString( Player->GetPing( m_GHost->m_LCPings ) ) + ",";
@@ -3632,12 +3670,11 @@ string CBaseGame :: GetIPs( )
 	
 	for( unsigned char i = 0; i < m_Slots.size( ); ++i )
 	{
-		CGamePlayer *Player = GetPlayerFromSID( i );
+		CGamePlayer *Player = GetPlayerFromSID2( i );
 
 		if( Player )
 		{
-			BYTEARRAY IP = Player->GetExternalIP( );
-			ips += UTIL_ToString( ((uint32_t) IP[0]) << 24 + ((uint32_t) IP[1]) << 16 + ((uint32_t) IP[2]) << 8 + ((uint32_t) IP[3]) ) + ",";
+			ips += Player->GetExternalIPString() + ",";
 		}
 	}
 
@@ -3650,7 +3687,7 @@ string CBaseGame :: GetTeams( )
 	
 	for( unsigned char i = 0; i < m_Slots.size( ); ++i )
 	{
-		CGamePlayer *Player = GetPlayerFromSID( i );
+		CGamePlayer *Player = GetPlayerFromSID2( i );
 
 		if( Player )
 			teams += UTIL_ToString( m_Slots[i].GetTeam( ) ) + ",";
@@ -3665,7 +3702,7 @@ string CBaseGame :: GetColors( )
 	
 	for( unsigned char i = 0; i < m_Slots.size( ); ++i )
 	{
-		CGamePlayer *Player = GetPlayerFromSID( i );
+		CGamePlayer *Player = GetPlayerFromSID2( i );
 
 		if( Player )
 			colors += UTIL_ToString( m_Slots[i].GetColour( ) ) + ",";
@@ -3680,7 +3717,7 @@ string CBaseGame :: GetLeftTimes( )
 	
 	for( unsigned char i = 0; i < m_Slots.size( ); ++i )
 	{
-		CGamePlayer *Player = GetPlayerFromSID( i );
+		CGamePlayer *Player = GetPlayerFromSID2( i );
 
 		if( Player )
 			lefttimes += UTIL_ToString( Player->GetLeft( ) ) + ",";
@@ -3695,7 +3732,7 @@ string CBaseGame :: GetLeftReasons( )
 	
 	for( unsigned char i = 0; i < m_Slots.size( ); ++i )
 	{
-		CGamePlayer *Player = GetPlayerFromSID( i );
+		CGamePlayer *Player = GetPlayerFromSID2( i );
 
 		if( Player )
 			leftreasons += Player->GetLeftReason( ) + ",";
@@ -4812,7 +4849,10 @@ void CBaseGame :: DeleteFakePlayer( )
 void CBaseGame :: DoGameUpdate( bool reset )
 {
 	if( !reset )
-		m_GameUpdate = m_GHost->m_DB->ThreadedGameUpdate( m_HostCounter, !m_CountDownStarted, "", m_GameTicks, m_GameName, m_OwnerName, m_CreatorName, "", m_Players.size( ), m_Slots.size( ), GetUsernames( ), GetServers( ), GetPings( ), GetIPs( ), GetTeams( ), GetColors( ), GetLeftTimes( ), GetLeftReasons( ) );
+		if( m_GameLoading || m_GameLoaded )
+			m_GameUpdate = m_GHost->m_DB->ThreadedGameUpdate( m_HostCounter, 0, "", m_GameTicks / 1000, m_GameName, m_OwnerName, m_CreatorName, "", m_Players.size( ), m_StartPlayers, GetUsernames( ), GetServers( ), GetPings( ), GetIPs( ), GetTeams( ), GetColors( ), GetLeftTimes( ), GetLeftReasons( ) );
+		else
+			m_GameUpdate = m_GHost->m_DB->ThreadedGameUpdate( m_HostCounter, 1, "", GetTime( ) - m_CreationTime, m_GameName, m_OwnerName, m_CreatorName, "", m_Players.size( ), m_Slots.size( ), GetUsernames( ), GetServers( ), GetPings( ), GetIPs( ), GetTeams( ), GetColors( ), GetLeftTimes( ), GetLeftReasons( ) );
 	else
 		m_GameUpdate = m_GHost->m_DB->ThreadedGameUpdate( m_HostCounter, !m_CountDownStarted, "", m_GameTicks, "", m_OwnerName, m_CreatorName, "", m_Players.size( ), m_Slots.size( ), GetUsernames( ), GetServers( ), GetPings( ), GetIPs( ), GetTeams( ), GetColors( ), GetLeftTimes( ), GetLeftReasons( ) );
 	
