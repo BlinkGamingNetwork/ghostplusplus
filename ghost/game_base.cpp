@@ -578,8 +578,8 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 						break;
 
 					Send( *i, m_Protocol->SEND_W3GS_MAPPART( GetHostPID( ), (*i)->GetPID( ), (*i)->GetLastMapPartSent( ), m_Map->GetMapData( ) ) );
-					(*i)->SetLastMapPartSent( (*i)->GetLastMapPartSent( ) + 14420 );
-					m_DownloadCounter += 14420;
+					(*i)->SetLastMapPartSent( (*i)->GetLastMapPartSent( ) + 1442 );
+					m_DownloadCounter += 1442;
 				}
 			}
 		}
