@@ -666,16 +666,17 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 	{
 		bool FinishedLoading = true;
 
-                for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); ++i )
+        for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); ++i )
 		{
 			FinishedLoading = (*i)->GetFinishedLoading( );
 
-			if( !FinishedLoading )
+			if( !FinishedLoading ) {
 				if ( GetTicks( ) - m_StartedLoadingTicks > 240000 ) {
 					(*i)->SetDeleteMe( true );
 					(*i)->SetLeftCode( PLAYERLEAVE_LOBBY );
 				}
 				break;
+			}
 		}
 
 		if( FinishedLoading )
