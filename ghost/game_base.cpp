@@ -51,6 +51,7 @@ CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16
     m_DatabaseID = 0;
     m_AnnounceInterval = m_GHost->m_DefaultAnnounceInterval;
     m_AnnounceMessage = m_GHost->m_DefaultAnnounceMessage;
+	m_LastAnnounceTime = GetTime()
 
 	if( m_GHost->m_SaveReplays && !m_SaveGame )
 		m_Replay = new CReplay( );	
