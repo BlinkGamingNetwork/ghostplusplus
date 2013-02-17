@@ -199,9 +199,6 @@ CBaseGame :: ~CBaseGame( )
 		delete m_Actions.front( );
 		m_Actions.pop( );
 	}
-	
-	// delete game from the database
-	DoGameUpdate( true );
 }
 
 uint32_t CBaseGame :: GetNextTimedActionTicks( )
@@ -491,7 +488,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 		m_LastRefreshTime = GetTime( );
 		
 		// update the new game
-		DoGameUpdate( true );
+		DoGameUpdate( false );
 	}
 
 	// refresh every 3 seconds
