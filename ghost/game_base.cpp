@@ -51,7 +51,7 @@ CBaseGame :: CBaseGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16
     m_DatabaseID = 0;
     m_AnnounceInterval = m_GHost->m_DefaultAnnounceInterval;
     m_AnnounceMessage = m_GHost->m_DefaultAnnounceMessage;
-	m_LastAnnounceTime = GetTime()
+	m_LastAnnounceTime = GetTime();
 
 	if( m_GHost->m_SaveReplays && !m_SaveGame )
 		m_Replay = new CReplay( );	
@@ -4855,7 +4855,7 @@ void CBaseGame :: DoGameUpdate( bool reset )
 		else
 			m_GameUpdate = m_GHost->m_DB->ThreadedGameUpdate( m_HostCounter, 1, "", GetTime( ) - m_CreationTime, m_GameName, m_OwnerName, m_CreatorName, "", m_Players.size( ), m_Slots.size( ), GetUsernames( ), GetServers( ), GetPings( ), GetIPs( ), GetTeams( ), GetColors( ), GetLeftTimes( ), GetLeftReasons( ) );
 	else
-		m_GameUpdate = m_GHost->m_DB->ThreadedGameUpdate( m_HostCounter, !m_CountDownStarted, "", m_GameTicks, "", m_OwnerName, m_CreatorName, "", m_Players.size( ), m_Slots.size( ), GetUsernames( ), GetServers( ), GetPings( ), GetIPs( ), GetTeams( ), GetColors( ), GetLeftTimes( ), GetLeftReasons( ) );
+		m_GameUpdate = m_GHost->m_DB->ThreadedGameUpdate( m_HostCounter, 0, "", 0, "", "", "", "", 0, 0, "", "", "", "", "", "", "", "" );
 	
 	m_LastGameUpdateTime = GetTime( );
 }
