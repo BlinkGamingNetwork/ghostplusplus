@@ -3620,13 +3620,14 @@ CGamePlayer *CBaseGame :: GetPlayerFromColour( unsigned char colour )
 string CBaseGame :: GetUsernames( )
 {
 	string usernames = "";
-	
+	int n = 0;
 	for( unsigned char i = 0; i < m_Slots.size( ); ++i )
 	{
 		CGamePlayer *Player = GetPlayerFromSID2( i );
 
 		if( Player )
-			usernames += Player->GetName( ) + ",";
+			usernames += UTIL_ToString( n ) + ":" + Player->GetName( ) + ",";
+		n++;
 	}
 
 	return usernames.substr( 0, usernames.length( ) - 1 );
