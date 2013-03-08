@@ -670,10 +670,7 @@ bool CBaseGame :: Update( void *fd, void *send_fd )
 			FinishedLoading = (*i)->GetFinishedLoading( );
 
 			if( !FinishedLoading )
-				if ( GetTicks( ) - m_StartedLoadingTicks > 240000 ) {
-					(*i)->SetDeleteMe( true );
-					(*i)->SetLeftCode( PLAYERLEAVE_LOBBY );
-				}
+				break;
 		}
 
 		if( FinishedLoading )
