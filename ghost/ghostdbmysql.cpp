@@ -669,7 +669,7 @@ uint32_t MySQLBanCount( void *conn, string *error, uint32_t botid, string server
 {
 	string EscServer = MySQLEscapeString( conn, server );
 	uint32_t Count = 0;
-	string Query = "SELECT COUNT(*) FROM bans WHERE server='" + EscServer + "' AND active = 1 AND expire > NOW()";
+	string Query = "SELECT COUNT(*) FROM bans WHERE server='" + EscServer + "' AND active = 1 AND (expire IS NULL OR expire > NOW())";
 
 	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
 		*error = mysql_error( (MYSQL *)conn );
@@ -705,9 +705,9 @@ CDBBan *MySQLBanCheck( void *conn, string *error, uint32_t botid, string server,
 	string Query;
 
 	if( ip.empty( ) )
-		Query = "SELECT name, INET_NTOA(ip), DATE(date), gamename, admin, reason FROM bans WHERE server='" + EscServer + "' AND name='" + EscUser + "' AND active = 1 AND expire > NOW()";
+		Query = "SELECT name, INET_NTOA(ip), DATE(date), gamename, admin, reason FROM bans WHERE server='" + EscServer + "' AND name='" + EscUser + "' active = 1 AND (expire IS NULL OR expire > NOW())";
 	else
-		Query = "SELECT name, INET_NTOA(ip), DATE(date), gamename, admin, reason FROM bans WHERE (server='" + EscServer + "' AND name='" + EscUser + "') OR ip=INET_ATON('" + EscIP + "') AND active = 1 AND expire > NOW()";
+		Query = "SELECT name, INET_NTOA(ip), DATE(date), gamename, admin, reason FROM bans WHERE (server='" + EscServer + "' AND name='" + EscUser + "') OR ip=INET_ATON('" + EscIP + "') AND active = 1 AND (expire IS NULL OR expire > NOW())";
 
 	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
 		*error = mysql_error( (MYSQL *)conn );
@@ -788,7 +788,7 @@ vector<CDBBan *> MySQLBanList( void *conn, string *error, uint32_t botid, string
 {
 	string EscServer = MySQLEscapeString( conn, server );
 	vector<CDBBan *> BanList;
-	string Query = "SELECT name, INET_NTOA(ip), DATE(date), gamename, admin, reason FROM bans WHERE server='" + EscServer + "' AND active = 1 AND expire > NOW()";
+	string Query = "SELECT name, INET_NTOA(ip), DATE(date), gamename, admin, reason FROM bans WHERE server='" + EscServer + "' AND active = 1 AND (expire IS NULL OR expire > NOW())";
 
 	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
 		*error = mysql_error( (MYSQL *)conn );
