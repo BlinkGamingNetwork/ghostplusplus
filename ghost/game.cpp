@@ -1834,7 +1834,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 					unsigned char SID = GetSIDFromPID( LastMatch->GetPID( ) );
 					bool OnlyPlayer = false;
 
-					if( SID < m_Slots.size( ) )
+					if( SID < m_Slots.size( ) && m_GameLoaded )
 					{
 						unsigned char Team = m_Slots[SID].GetTeam( );
 						OnlyPlayer = true;
