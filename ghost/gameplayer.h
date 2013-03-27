@@ -123,6 +123,9 @@ private:
 	bool m_KickVote;							// if the player voted to kick a player or not
 	bool m_StartVote;// if the player voted to start or not
 	bool m_Muted;								// if the player is muted or not
+	bool m_MutedAuto;							// whether or not mute was automatic mute
+	vector<uint32_t> m_MuteMessages;			// times player sent messages to determine if we should automute
+	uint32_t m_MutedTicks;
 	bool m_LeftMessageSent;						// if the playerleave message has been sent or not
 	bool m_GProxy;								// if the player is using GProxy++
 	bool m_GProxyDisconnectNoticeSent;			// if a disconnection notice has been sent or not when using GProxy++
@@ -205,7 +208,7 @@ public:
 	void SetDropVote( bool nDropVote )												{ m_DropVote = nDropVote; }
 	void SetKickVote( bool nKickVote )												{ m_KickVote = nKickVote; }
 	void SetStartVote( bool nStartVote ){ m_StartVote = nStartVote; }
-	void SetMuted( bool nMuted )													{ m_Muted = nMuted; }
+	void SetMuted( bool nMuted )													{ m_Muted = nMuted; m_MutedTicks = GetTicks( ); m_MutedAuto = false; }
 	void SetLeftMessageSent( bool nLeftMessageSent )								{ m_LeftMessageSent = nLeftMessageSent; }
 	void SetGProxyDisconnectNoticeSent( bool nGProxyDisconnectNoticeSent )			{ m_GProxyDisconnectNoticeSent = nGProxyDisconnectNoticeSent; }
 

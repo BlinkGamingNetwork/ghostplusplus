@@ -295,6 +295,14 @@ bool CGamePlayer :: Update( void *fd )
 	if( m_Socket && GetTime( ) - m_Socket->GetLastRecv( ) >= 30 )
 		m_Game->EventPlayerDisconnectTimedOut( this );
 
+	// unmute player
+	if( GetMuted( ) && ( GetTicks( ) - m_MutedTicks > 60000 || ( m_MutedAuto && GetTicks( ) - m_MutedTicks > 15000 ) ) )
+	{
+		SetMuted( false );
+		m_Game->SendAllChat( "[" + m_Name + "] has been automatically unmuted. (Don't spam or you'll be muted again!)" );
+		m_MuteMessages.clear( );
+	}
+
 	// GProxy++ acks
 
 	if( m_GProxy && GetTime( ) - m_LastGProxyAckTime >= 10 )
@@ -459,7 +467,34 @@ void CGamePlayer :: ProcessPackets( )
 				ChatPlayer = m_Protocol->RECEIVE_W3GS_CHAT_TO_HOST( Packet->GetData( ) );
 
 				if( ChatPlayer )
+				{
+					// determine if we should auto-mute this player
+					if( ChatPlayer->GetType( ) == CIncomingChatPlayer :: CTH_MESSAGE || ChatPlayer->GetType( ) == CIncomingChatPlayer :: CTH_MESSAGEEXTRA )
+					{
+						m_MuteMessages.push_back( GetTicks( ) );
+					
+						if( m_MuteMessages.size( ) > 7 )
+							m_MuteMessages.erase( m_MuteMessages.begin( ) );
+					
+						uint32_t RecentCount = 0;
+
+						for( unsigned int i = 0; i < m_MuteMessages.size( ); ++i )
+						{
+							if( GetTicks( ) - m_MuteMessages[i] < 7000 )
+								RecentCount++;
+						}
+					
+						if( !GetMuted( ) && RecentCount >= 7 )
+						{
+							SetMuted( true );
+							m_MutedAuto = true;
+							m_Game->SendAllChat( "[" + m_Name + "] has been automatically muted for spamming. (You will be unmuted momentarily, but please do not spam again!)" );
+							m_MuteMessages.clear( );
+						}
+					}
+
 					m_Game->EventPlayerChatToHost( this, ChatPlayer );
+				}
 
 				delete ChatPlayer;
 				ChatPlayer = NULL;
