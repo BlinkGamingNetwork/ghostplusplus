@@ -1673,10 +1673,17 @@ void CBaseGame :: EventPlayerDisconnectConnectionClosed( CGamePlayer *player )
 void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinPlayer *joinPlayer )
 {
 	// check if the new player's name is empty or too long
+	string LowerName = joinPlayer->GetName( );
+	transform( LowerName.begin( ), LowerName.end( ), LowerName.begin( ), (int(*)(int))tolower );
 
-	if( joinPlayer->GetName( ).empty( ) || joinPlayer->GetName( ).size( ) > 15 )
+	if( joinPlayer->GetName( ).empty( ) || joinPlayer->GetName( ).size( ) > 15 || LowerName.find( " " ) != string::npos || LowerName.find( "|" ) != string::npos )
 	{
 		CONSOLE_Print( "[GAME: " + m_GameName + "] player [" + joinPlayer->GetName( ) + "|" + potential->GetExternalIPString( ) + "] is trying to join the game with an invalid name of length " + UTIL_ToString( joinPlayer->GetName( ).size( ) ) );
+		
+		// autoban the player for spoofing name
+		if( !m_GHost->m_BNETs.empty( ) )
+			m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( m_GHost->m_BNETs[0]->GetServer( ), "", potential->GetExternalIPString( ), m_GameName, "autospoofban", "attempted to join with spoofed name: " + joinPlayer->GetName( ) ));
+		
 		potential->Send( m_Protocol->SEND_W3GS_REJECTJOIN( REJECTJOIN_FULL ) );
 		potential->SetDeleteMe( true );
 		return;
