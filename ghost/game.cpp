@@ -71,9 +71,16 @@ CGame :: CGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHost
 	m_DBGame = new CDBGame( 0, string( ), m_Map->GetMapPath( ), string( ), string( ), string( ), 0 );
 
 	if( m_Map->GetMapType( ) == "w3mmd" )
+	{
 		m_Stats = new CStatsW3MMD( this, m_Map->GetMapStatsW3MMDCategory( ) );
+		m_MapType = m_Map->GetMapStatsW3MMDCategory( );
+	}
+	
 	else if( m_Map->GetMapType( ) == "dota" )
+	{
 		m_Stats = new CStatsDOTA( this );
+		m_MapType = "dota";
+	}
 }
 
 CGame :: ~CGame( )
@@ -281,6 +288,35 @@ bool CGame :: Update( void *fd, void *send_fd )
 		}
 		else
 			++i;
+	}
+
+	if( m_ForfeitTime != 0 && GetTime( ) - m_ForfeitTime >= 5 )
+	{
+		// kick everyone on forfeit team
+		
+		for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++)
+		{
+			if( *i && !(*i)->GetLeftMessageSent( ) )
+			{
+				char sid = GetSIDFromPID( (*i)->GetPID( ) );
+				
+				if( sid != 255 && m_Slots[sid].GetTeam( ) == m_ForfeitTeam )
+				{
+					(*i)->SetDeleteMe( true );
+					(*i)->SetLeftReason( "forfeited" );
+					(*i)->SetLeftCode( PLAYERLEAVE_LOST );
+				}
+			}
+		}
+		
+		string ForfeitTeamString = "Sentinel";
+		if( m_ForfeitTeam == 1 ) ForfeitTeamString = "Scourge";
+		
+		SendAllChat( "The " + ForfeitTeamString + " players have been removed from the game." );
+		SendAllChat( "Please wait five or so seconds before leaving so that stats can be properly saved." );
+		
+		m_ForfeitTime = 0;
+		m_GameOverTime = GetTime( );
 	}
 
 	return CBaseGame :: Update( fd, send_fd );
@@ -1687,6 +1723,74 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 
 	if( Command == "checkme" )
 		SendChat( player, m_GHost->m_Language->CheckedPlayer( User, player->GetNumPings( ) > 0 ? UTIL_ToString( player->GetPing( m_GHost->m_LCPings ) ) + "ms" : "N/A", m_GHost->m_DBLocal->FromCheck( UTIL_ByteArrayToUInt32( player->GetExternalIP( ), true ) ), AdminCheck || RootAdminCheck ? "Yes" : "No", IsOwner( User ) ? "Yes" : "No", player->GetSpoofed( ) ? "Yes" : "No", player->GetSpoofedRealm( ).empty( ) ? "N/A" : player->GetSpoofedRealm( ), player->GetReserved( ) ? "Yes" : "No" ) );
+
+	//
+	// !FORFEIT
+	//
+	
+	if( m_GameLoaded && m_ForfeitTime == 0 && m_MapType == "dota" && ( Command == "ff" || Command == "forfeit" ) )
+	{
+		bool ChangedVote = true;
+		
+		if( !player->GetForfeitVote( ) )
+			player->SetForfeitVote( true );
+		else
+			ChangedVote = false;
+		
+		char playerSID = GetSIDFromPID( player->GetPID( ) );
+		
+		if( playerSID != 255 )
+		{
+			char playerTeam = m_Slots[playerSID].GetTeam( );
+			
+			// whether or not all players on the team of the player who typed the command forfeited
+			bool AllVoted = true;
+			int numVoted = 0;
+			int numTotal = 0;
+
+			for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++)
+			{
+				if( *i && !(*i)->GetLeftMessageSent( ) )
+				{
+					char sid = GetSIDFromPID( (*i)->GetPID( ) );
+					
+					if( sid != 255 && m_Slots[sid].GetTeam( ) == playerTeam )
+					{
+						numTotal++;
+						
+						if( !(*i)->GetForfeitVote( ) )
+							AllVoted = false;
+						else
+							numVoted++;
+					}
+				}
+			}
+			
+			m_ForfeitTeam = playerTeam;
+			
+			// observers cannot forfeit!
+			if( m_ForfeitTeam == 0 || m_ForfeitTeam == 1 )
+			{
+				string ForfeitTeamString = "Sentinel";
+				if( m_ForfeitTeam == 1 ) ForfeitTeamString = "Scourge";
+			
+				if( AllVoted )
+				{
+					m_Stats->SetWinner( ( playerTeam + 1 ) % 2 );
+					m_ForfeitTime = GetTime( );
+				
+					SendAllChat( "The " + ForfeitTeamString + " has forfeited" );
+					SendAllChat( "Wait ten seconds before leaving or stats will not be properly recorded!" );
+				}
+			
+				else if( ChangedVote )
+				{
+					SendAllChat( "[" + player->GetName( ) + "] has voted to forfeit." );
+					SendAllChat( UTIL_ToString( numVoted ) + "/" + UTIL_ToString( numTotal ) + " players on the " + ForfeitTeamString + " have voted to forfeit." );
+				}
+			}
+		}
+	}
 
 	//
 	// !STATS

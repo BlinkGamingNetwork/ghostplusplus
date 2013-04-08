@@ -122,6 +122,7 @@ private:
 	bool m_DropVote;							// if the player voted to drop the laggers or not (on the lag screen)
 	bool m_KickVote;							// if the player voted to kick a player or not
 	bool m_StartVote;// if the player voted to start or not
+	bool m_ForfeitVote;
 	bool m_Muted;								// if the player is muted or not
 	bool m_MutedAuto;							// whether or not mute was automatic mute
 	vector<uint32_t> m_MuteMessages;			// times player sent messages to determine if we should automute
@@ -176,6 +177,7 @@ public:
 	bool GetDropVote( )							{ return m_DropVote; }
 	bool GetKickVote( )							{ return m_KickVote; }
 	bool GetStartVote( ){ return m_StartVote; }
+	bool GetForfeitVote( )						{ return m_ForfeitVote; }
 	bool GetMuted( )							{ return m_Muted; }
 	bool GetLeftMessageSent( )					{ return m_LeftMessageSent; }
 	bool GetGProxy( )							{ return m_GProxy; }
@@ -209,6 +211,7 @@ public:
 	void SetKickVote( bool nKickVote )												{ m_KickVote = nKickVote; }
 	void SetStartVote( bool nStartVote ){ m_StartVote = nStartVote; }
 	void SetMuted( bool nMuted )													{ m_Muted = nMuted; m_MutedTicks = GetTicks( ); m_MutedAuto = false; }
+	void SetForfeitVote( bool nForfeitVote )										{ m_ForfeitVote = nForfeitVote; }
 	void SetLeftMessageSent( bool nLeftMessageSent )								{ m_LeftMessageSent = nLeftMessageSent; }
 	void SetGProxyDisconnectNoticeSent( bool nGProxyDisconnectNoticeSent )			{ m_GProxyDisconnectNoticeSent = nGProxyDisconnectNoticeSent; }
 
