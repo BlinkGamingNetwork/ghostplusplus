@@ -84,7 +84,7 @@ public:
 	virtual vector<string> AdminList( string server );
 	virtual uint32_t BanCount( string server );
 	virtual CDBBan *BanCheck( string server, string user, string ip );
-	virtual bool BanAdd( string server, string user, string ip, string gamename, string admin, string reason );
+	virtual bool BanAdd( string server, string user, string ip, string gamename, string admin, string reason, uint32_t duration );
 	virtual bool BanRemove( string server, string user );
 	virtual bool BanRemove( string user );
 	virtual vector<CDBBan *> BanList( string server );
@@ -117,7 +117,7 @@ public:
 	virtual CCallableAdminList *ThreadedAdminList( string server );
 	virtual CCallableBanCount *ThreadedBanCount( string server );
 	virtual CCallableBanCheck *ThreadedBanCheck( string server, string user, string ip );
-	virtual CCallableBanAdd *ThreadedBanAdd( string server, string user, string ip, string gamename, string admin, string reason );
+	virtual CCallableBanAdd *ThreadedBanAdd( string server, string user, string ip, string gamename, string admin, string reason, uint32_t duration );
 	virtual CCallableBanRemove *ThreadedBanRemove( string server, string user );
 	virtual CCallableBanRemove *ThreadedBanRemove( string user );
 	virtual CCallableBanList *ThreadedBanList( string server );
@@ -307,10 +307,11 @@ protected:
 	string m_GameName;
 	string m_Admin;
 	string m_Reason;
+	uint32_t m_Duration;
 	bool m_Result;
 
 public:
-	CCallableBanAdd( string nServer, string nUser, string nIP, string nGameName, string nAdmin, string nReason ) : CBaseCallable( ), m_Server( nServer ), m_User( nUser ), m_IP( nIP ), m_GameName( nGameName ), m_Admin( nAdmin ), m_Reason( nReason ), m_Result( false ) { }
+	CCallableBanAdd( string nServer, string nUser, string nIP, string nGameName, string nAdmin, string nReason, uint32_t nDuration ) : CBaseCallable( ), m_Server( nServer ), m_User( nUser ), m_IP( nIP ), m_GameName( nGameName ), m_Admin( nAdmin ), m_Reason( nReason ), m_Duration( nDuration ), m_Result( false ) { }
 	virtual ~CCallableBanAdd( );
 
 	virtual string GetServer( )				{ return m_Server; }

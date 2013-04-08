@@ -1682,7 +1682,7 @@ void CBaseGame :: EventPlayerJoined( CPotentialPlayer *potential, CIncomingJoinP
 		
 		// autoban the player for spoofing name
 		if( !m_GHost->m_BNETs.empty( ) )
-			m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( m_GHost->m_BNETs[0]->GetServer( ), "", potential->GetExternalIPString( ), m_GameName, "autospoofban", "attempted to join with spoofed name: " + joinPlayer->GetName( ) ));
+			m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( m_GHost->m_BNETs[0]->GetServer( ), "", potential->GetExternalIPString( ), m_GameName, "autospoofban", "attempted to join with spoofed name: " + joinPlayer->GetName( ), 3600 * 24 ));
 		
 		potential->Send( m_Protocol->SEND_W3GS_REJECTJOIN( REJECTJOIN_FULL ) );
 		potential->SetDeleteMe( true );

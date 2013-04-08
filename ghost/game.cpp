@@ -488,7 +488,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 					if( Matches == 0 )
 						SendAllChat( m_GHost->m_Language->UnableToBanNoMatchesFound( Victim ) );
 					else if( Matches == 1 )
-						m_PairedBanAdds.push_back( PairedBanAdd( User, m_GHost->m_DB->ThreadedBanAdd( LastMatch->GetServer( ), LastMatch->GetName( ), LastMatch->GetIP( ), m_GameName, User, Reason ) ) );
+						m_PairedBanAdds.push_back( PairedBanAdd( User, m_GHost->m_DB->ThreadedBanAdd( LastMatch->GetServer( ), LastMatch->GetName( ), LastMatch->GetIP( ), m_GameName, User, Reason, 3600 * 24 * 7 ) ) );
 					else
 						SendAllChat( m_GHost->m_Language->UnableToBanFoundMoreThanOneMatch( Victim ) );
 				}
@@ -500,7 +500,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 					if( Matches == 0 )
 						SendAllChat( m_GHost->m_Language->UnableToBanNoMatchesFound( Victim ) );
 					else if( Matches == 1 )
-						m_PairedBanAdds.push_back( PairedBanAdd( User, m_GHost->m_DB->ThreadedBanAdd( LastMatch->GetJoinedRealm( ), LastMatch->GetName( ), LastMatch->GetExternalIPString( ), m_GameName, User, Reason ) ) );
+						m_PairedBanAdds.push_back( PairedBanAdd( User, m_GHost->m_DB->ThreadedBanAdd( LastMatch->GetJoinedRealm( ), LastMatch->GetName( ), LastMatch->GetExternalIPString( ), m_GameName, User, Reason, 3600 * 24 * 7 ) ) );
 					else
 						SendAllChat( m_GHost->m_Language->UnableToBanFoundMoreThanOneMatch( Victim ) );
 				}
@@ -595,7 +595,7 @@ bool CGame :: EventPlayerBotCommand( CGamePlayer *player, string command, string
 			//
 
 			else if( Command == "banlast" && m_GameLoaded && !m_GHost->m_BNETs.empty( ) && m_DBBanLast && AdminCheck )
-				m_PairedBanAdds.push_back( PairedBanAdd( User, m_GHost->m_DB->ThreadedBanAdd( m_DBBanLast->GetServer( ), m_DBBanLast->GetName( ), m_DBBanLast->GetIP( ), m_GameName, User, Payload ) ) );
+				m_PairedBanAdds.push_back( PairedBanAdd( User, m_GHost->m_DB->ThreadedBanAdd( m_DBBanLast->GetServer( ), m_DBBanLast->GetName( ), m_DBBanLast->GetIP( ), m_GameName, User, Payload, 3600 * 24 * 7 ) ) );
 
 			//
 			// !CHECK

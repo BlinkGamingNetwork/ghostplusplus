@@ -1164,7 +1164,7 @@ void CBNET :: BotCommand(string Message, string User, bool Whisper)
 			if( IsBannedName( Victim ) )
 				QueueChatCommand( m_GHost->m_Language->UserIsAlreadyBanned( m_Server, Victim ), User, Whisper );
 			else
-				m_PairedBanAdds.push_back( PairedBanAdd( Whisper ? User : string( ), m_GHost->m_DB->ThreadedBanAdd( m_Server, Victim, string( ), string( ), User, Reason ) ) );
+				m_PairedBanAdds.push_back( PairedBanAdd( Whisper ? User : string( ), m_GHost->m_DB->ThreadedBanAdd( m_Server, Victim, string( ), string( ), User, Reason, 3600 * 24 * 7 ) ) );
 		}
 
 		//
