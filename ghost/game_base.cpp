@@ -1587,6 +1587,7 @@ void CBaseGame :: EventPlayerDisconnectTimedOut( CGamePlayer *player )
 		player->SetDeleteMe( true );
 		player->SetLeftReason( m_GHost->m_Language->HasLostConnectionTimedOut( ) );
 		player->SetLeftCode( PLAYERLEAVE_DISCONNECT );
+		player->SetAutoban( true );
 
 		if( !m_GameLoading && !m_GameLoaded )
 			OpenSlot( GetSIDFromPID( player->GetPID( ) ), false );
@@ -1601,6 +1602,7 @@ void CBaseGame :: EventPlayerDisconnectPlayerError( CGamePlayer *player )
 	player->SetDeleteMe( true );
 	player->SetLeftReason( m_GHost->m_Language->HasLostConnectionPlayerError( player->GetErrorString( ) ) );
 	player->SetLeftCode( PLAYERLEAVE_DISCONNECT );
+	player->SetAutoban( true );
 
 	if( !m_GameLoading && !m_GameLoaded )
 		OpenSlot( GetSIDFromPID( player->GetPID( ) ), false );
@@ -1633,6 +1635,7 @@ void CBaseGame :: EventPlayerDisconnectSocketError( CGamePlayer *player )
 	player->SetDeleteMe( true );
 	player->SetLeftReason( m_GHost->m_Language->HasLostConnectionSocketError( player->GetSocket( )->GetErrorString( ) ) );
 	player->SetLeftCode( PLAYERLEAVE_DISCONNECT );
+	player->SetAutoban( true );
 
 	if( !m_GameLoading && !m_GameLoaded )
 		OpenSlot( GetSIDFromPID( player->GetPID( ) ), false );
@@ -1665,6 +1668,7 @@ void CBaseGame :: EventPlayerDisconnectConnectionClosed( CGamePlayer *player )
 	player->SetDeleteMe( true );
 	player->SetLeftReason( m_GHost->m_Language->HasLostConnectionClosedByRemoteHost( ) );
 	player->SetLeftCode( PLAYERLEAVE_DISCONNECT );
+	player->SetAutoban( true );
 
 	if( !m_GameLoading && !m_GameLoaded )
 		OpenSlot( GetSIDFromPID( player->GetPID( ) ), false );
@@ -2590,6 +2594,7 @@ void CBaseGame :: EventPlayerLeft( CGamePlayer *player, uint32_t reason )
 	// this function is only called when a player leave packet is received, not when there's a socket error, kick, etc...
 
 	player->SetDeleteMe( true );
+	player->SetAutoban( true );
 
 	if( reason == PLAYERLEAVE_GPROXY )
 		player->SetLeftReason( m_GHost->m_Language->WasUnrecoverablyDroppedFromGProxy( ) );
@@ -4782,6 +4787,7 @@ void CBaseGame :: StopLaggers( string reason )
 			(*i)->SetDeleteMe( true );
 			(*i)->SetLeftReason( reason );
 			(*i)->SetLeftCode( PLAYERLEAVE_DISCONNECT );
+			(*i)->SetAutoban( true );
 		}
 	}
 }

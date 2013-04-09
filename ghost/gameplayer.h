@@ -124,6 +124,7 @@ private:
 	bool m_StartVote;// if the player voted to start or not
 	bool m_ForfeitVote;
 	bool m_Muted;								// if the player is muted or not
+	bool m_Autoban;
 	bool m_MutedAuto;							// whether or not mute was automatic mute
 	vector<uint32_t> m_MuteMessages;			// times player sent messages to determine if we should automute
 	uint32_t m_MutedTicks;
@@ -179,6 +180,7 @@ public:
 	bool GetStartVote( ){ return m_StartVote; }
 	bool GetForfeitVote( )						{ return m_ForfeitVote; }
 	bool GetMuted( )							{ return m_Muted; }
+	bool GetAutoban( )							{ return m_Autoban; }
 	bool GetLeftMessageSent( )					{ return m_LeftMessageSent; }
 	bool GetGProxy( )							{ return m_GProxy; }
 	bool GetGProxyDisconnectNoticeSent( )		{ return m_GProxyDisconnectNoticeSent; }
@@ -211,6 +213,7 @@ public:
 	void SetKickVote( bool nKickVote )												{ m_KickVote = nKickVote; }
 	void SetStartVote( bool nStartVote ){ m_StartVote = nStartVote; }
 	void SetMuted( bool nMuted )													{ m_Muted = nMuted; m_MutedTicks = GetTicks( ); m_MutedAuto = false; }
+	void SetAutoban( bool nAutoban )												{ m_Autoban = nAutoban; }
 	void SetForfeitVote( bool nForfeitVote )										{ m_ForfeitVote = nForfeitVote; }
 	void SetLeftMessageSent( bool nLeftMessageSent )								{ m_LeftMessageSent = nLeftMessageSent; }
 	void SetGProxyDisconnectNoticeSent( bool nGProxyDisconnectNoticeSent )			{ m_GProxyDisconnectNoticeSent = nGProxyDisconnectNoticeSent; }

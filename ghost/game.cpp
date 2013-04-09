@@ -85,6 +85,25 @@ CGame :: CGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHost
 
 CGame :: ~CGame( )
 {
+	// autoban
+	uint32_t EndTime = m_GameTicks / 1000;
+	
+	for( vector<CDBGamePlayer *> :: iterator i = m_DBGamePlayers.begin( ); i != m_DBGamePlayers.end( ); ++i )
+	{
+		if( IsAutoBanned( (*i)->GetName( ) ) )
+		{
+			uint32_t LeftTime = (*i)->GetLeft( );
+			
+			if( EndTime - LeftTime > 300 )
+			{
+				string CustomReason = "autoban (leaver): left at " + UTIL_ToString( LeftTime ) + "/" + UTIL_ToString( EndTime );
+				
+				if( m_MapType == "dota" || m_MapType == "nwu" )
+					m_GHost->m_Callables.push_back( m_GHost->m_DB->ThreadedBanAdd( (*i)->GetSpoofedRealm(), (*i)->GetName( ), (*i)->GetIP(), m_GameName, "autoban", CustomReason, 3600 * 24 * 3 ));
+			}
+		}
+	}
+
 	if( m_CallableGameAdd && m_CallableGameAdd->GetReady( ) )
 	{
 		if( m_CallableGameAdd->GetResult( ) > 0 )
@@ -355,6 +374,43 @@ void CGame :: EventPlayerDeleted( CGamePlayer *player )
 		{
 			if( (*i)->GetName( ) == player->GetName( ) )
 				m_DBBanLast = *i;
+		}
+
+		// possibly autoban if the leave method caused this player to get autoban enabled
+		// and if this player is not observer (and if autobans are enabled)
+		// and if we haven't "soft" ended the game
+		if( player->GetAutoban( ) && m_GHost->m_AutoHostMaximumGames != 0 && Team != 12 )
+		{
+			string BanType = "";
+			
+			if( m_MapType == "dota" || m_MapType == "nwu" )
+				BanType = "dota";
+			
+			if( !BanType.empty( ) )
+			{
+				char sid, team;
+				uint32_t CountAlly = 0;
+				uint32_t CountEnemy = 0;
+
+				for( vector<CGamePlayer *> :: iterator i = m_Players.begin( ); i != m_Players.end( ); i++)
+				{
+					if( *i && !(*i)->GetLeftMessageSent( ) )
+					{
+						sid = GetSIDFromPID( (*i)->GetPID( ) );
+						if( sid != 255 )
+						{
+							team = m_Slots[sid].GetTeam( );
+							if( team == Team )
+								CountAlly++;
+							else
+								CountEnemy++;
+						}
+					}
+				}
+			
+				if( BanType == "dota" && CountAlly >= 4 && CountEnemy >= 4 )
+					m_AutoBans.push_back( player->GetName( ) );
+			}
 		}
 	}
 }
@@ -2060,4 +2116,15 @@ void CGame :: SaveGameData( )
 {
 	CONSOLE_Print( "[GAME: " + m_GameName + "] saving game data to database" );
 	m_CallableGameAdd = m_GHost->m_DB->ThreadedGameAdd( m_GHost->m_BNETs.size( ) == 1 ? m_GHost->m_BNETs[0]->GetServer( ) : string( ), m_DBGame->GetMap( ), m_GameName, m_OwnerName, m_GameTicks / 1000, m_GameState, m_CreatorName, m_CreatorServer );
+}
+
+bool CGame :: IsAutoBanned( string name )
+{
+	for( vector<string> :: iterator i = m_AutoBans.begin( ); i != m_AutoBans.end( ); i++ )
+	{
+		if( *i == name )
+			return true;
+	}
+
+	return false;
 }

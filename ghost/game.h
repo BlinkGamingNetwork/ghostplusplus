@@ -57,6 +57,9 @@ protected:
 	string m_MapType;
 	uint32_t m_ForfeitTime;						// time that players forfeited, or 0 if not forfeited
 	uint32_t m_ForfeitTeam;						// id of team that forfeited
+	vector<string> m_AutoBans;
+	
+	bool IsAutoBanned( string name );
 
 public:
 	CGame( CGHost *nGHost, CMap *nMap, CSaveGame *nSaveGame, uint16_t nHostPort, unsigned char nGameState, string nGameName, string nOwnerName, string nCreatorName, string nCreatorServer );
