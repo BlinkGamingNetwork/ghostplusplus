@@ -819,7 +819,7 @@ vector<CDBBan *> MySQLBanList( void *conn, string *error, uint32_t botid, string
 vector<string> MySQLCommandList( void *conn, string *error, uint32_t botid )
 {
 	vector<string> CommandList;
-	string Query = "SELECT command FROM commands WHERE botid='" + UTIL_ToString(botid) + "'";
+	string Query = "SELECT command FROM commands WHERE botid='" + UTIL_ToString(botid) + "' ORDER BY entry_time";
 
 	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
 		*error = mysql_error( (MYSQL *)conn );
