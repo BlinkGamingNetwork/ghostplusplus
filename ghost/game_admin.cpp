@@ -748,7 +748,7 @@ bool CAdminGame :: EventPlayerBotCommand( CGamePlayer *player, string command, s
 		//
 
                 else if( ( Command == "delban" || Command == "unban" ) && !Payload.empty( ) )
-			m_PairedBanRemoves.push_back( PairedBanRemove( player->GetName( ), m_GHost->m_DB->ThreadedBanRemove( Payload ) ) );
+			m_PairedBanRemoves.push_back( PairedBanRemove( player->GetName( ), m_GHost->m_DB->ThreadedBanRemove( Payload, "" ) ) );
 
 		//
 		// !DISABLE

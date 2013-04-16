@@ -253,27 +253,27 @@ CCallableBanAdd *CGHostDBMySQL :: ThreadedBanAdd( string server, string user, st
 	return Callable;
 }
 
-CCallableBanRemove *CGHostDBMySQL :: ThreadedBanRemove( string server, string user )
+CCallableBanRemove *CGHostDBMySQL :: ThreadedBanRemove( string server, string user, string reason )
 {
 	void *Connection = GetIdleConnection( );
 
 	if( !Connection )
                 ++m_NumConnections;
 
-	CCallableBanRemove *Callable = new CMySQLCallableBanRemove( server, user, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port );
+	CCallableBanRemove *Callable = new CMySQLCallableBanRemove( server, user, reason, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port );
 	CreateThread( Callable );
         ++m_OutstandingCallables;
 	return Callable;
 }
 
-CCallableBanRemove *CGHostDBMySQL :: ThreadedBanRemove( string user )
+CCallableBanRemove *CGHostDBMySQL :: ThreadedBanRemove( string user, string reason )
 {
 	void *Connection = GetIdleConnection( );
 
 	if( !Connection )
                 ++m_NumConnections;
 
-	CCallableBanRemove *Callable = new CMySQLCallableBanRemove( string( ), user, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port );
+	CCallableBanRemove *Callable = new CMySQLCallableBanRemove( string( ), user, reason, Connection, m_BotID, m_Server, m_Database, m_User, m_Password, m_Port );
 	CreateThread( Callable );
         ++m_OutstandingCallables;
 	return Callable;
@@ -753,13 +753,14 @@ bool MySQLBanAdd( void *conn, string *error, uint32_t botid, string server, stri
 	return Success;
 }
 
-bool MySQLBanRemove( void *conn, string *error, uint32_t botid, string server, string user )
+bool MySQLBanRemove( void *conn, string *error, uint32_t botid, string server, string user, string reason )
 {
 	transform( user.begin( ), user.end( ), user.begin( ), (int(*)(int))tolower );
 	string EscServer = MySQLEscapeString( conn, server );
 	string EscUser = MySQLEscapeString( conn, user );
+	string EscReason = MySQLEscapeString( conn, reason );
 	bool Success = false;
-	string Query = "DELETE FROM bans WHERE server='" + EscServer + "' AND name='" + EscUser + "'";
+	string Query = "UPDATE bans SET ACTIVE=0, delban = '" + EscUser + "', delreason = '" + EscReason + "' WHERE server='" + EscServer + "' AND name='" + EscUser + "'";
 
 	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
 		*error = mysql_error( (MYSQL *)conn );
@@ -769,12 +770,13 @@ bool MySQLBanRemove( void *conn, string *error, uint32_t botid, string server, s
 	return Success;
 }
 
-bool MySQLBanRemove( void *conn, string *error, uint32_t botid, string user )
+bool MySQLBanRemove( void *conn, string *error, uint32_t botid, string user, string reason )
 {
 	transform( user.begin( ), user.end( ), user.begin( ), (int(*)(int))tolower );
 	string EscUser = MySQLEscapeString( conn, user );
+	string EscReason = MySQLEscapeString( conn, reason );
 	bool Success = false;
-	string Query = "DELETE FROM bans WHERE name='" + EscUser + "'";
+	string Query = "UPDATE bans SET ACTIVE=0, delban = '" + EscUser + "', delreason = '" + EscReason + "' WHERE name='" + EscUser + "'";
 
 	if( mysql_real_query( (MYSQL *)conn, Query.c_str( ), Query.size( ) ) != 0 )
 		*error = mysql_error( (MYSQL *)conn );
@@ -1413,9 +1415,9 @@ void CMySQLCallableBanRemove :: operator( )( )
 	if( m_Error.empty( ) )
 	{
 		if( m_Server.empty( ) )
-			m_Result = MySQLBanRemove( m_Connection, &m_Error, m_SQLBotID, m_User );
+			m_Result = MySQLBanRemove( m_Connection, &m_Error, m_SQLBotID, m_User, m_Reason );
 		else
-			m_Result = MySQLBanRemove( m_Connection, &m_Error, m_SQLBotID, m_Server, m_User );
+			m_Result = MySQLBanRemove( m_Connection, &m_Error, m_SQLBotID, m_Server, m_User, m_Reason );
 	}
 
 	Close( );

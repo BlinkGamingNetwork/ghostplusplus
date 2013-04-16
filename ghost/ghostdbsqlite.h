@@ -220,8 +220,8 @@ public:
 	virtual uint32_t BanCount( string server );
 	virtual CDBBan *BanCheck( string server, string user, string ip );
 	virtual bool BanAdd( string server, string user, string ip, string gamename, string admin, string reason, uint32_t duration );
-	virtual bool BanRemove( string server, string user );
-	virtual bool BanRemove( string user );
+	virtual bool BanRemove( string server, string user, string reason );
+	virtual bool BanRemove( string user, string reason );
 	virtual vector<CDBBan *> BanList( string server );
 	virtual uint32_t GameAdd( string server, string map, string gamename, string ownername, uint32_t duration, uint32_t gamestate, string creatorname, string creatorserver );
 	virtual uint32_t GamePlayerAdd( uint32_t gameid, string name, string ip, uint32_t spoofed, string spoofedrealm, uint32_t reserved, uint32_t loadingtime, uint32_t left, string leftreason, uint32_t team, uint32_t colour );
@@ -251,8 +251,8 @@ public:
 	virtual CCallableBanCount *ThreadedBanCount( string server );
 	virtual CCallableBanCheck *ThreadedBanCheck( string server, string user, string ip );
 	virtual CCallableBanAdd *ThreadedBanAdd( string server, string user, string ip, string gamename, string admin, string reason, uint32_t duration );
-	virtual CCallableBanRemove *ThreadedBanRemove( string server, string user );
-	virtual CCallableBanRemove *ThreadedBanRemove( string user );
+	virtual CCallableBanRemove *ThreadedBanRemove( string server, string user, string reason );
+	virtual CCallableBanRemove *ThreadedBanRemove( string user, string reason );
 	virtual CCallableBanList *ThreadedBanList( string server );
 	virtual CCallableGameAdd *ThreadedGameAdd( string server, string map, string gamename, string ownername, uint32_t duration, uint32_t gamestate, string creatorname, string creatorserver );
 	virtual CCallableGamePlayerAdd *ThreadedGamePlayerAdd( uint32_t gameid, string name, string ip, uint32_t spoofed, string spoofedrealm, uint32_t reserved, uint32_t loadingtime, uint32_t left, string leftreason, uint32_t team, uint32_t colour );

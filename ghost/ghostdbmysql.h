@@ -196,8 +196,8 @@ public:
 	virtual CCallableBanCount *ThreadedBanCount( string server );
 	virtual CCallableBanCheck *ThreadedBanCheck( string server, string user, string ip );
 	virtual CCallableBanAdd *ThreadedBanAdd( string server, string user, string ip, string gamename, string admin, string reason, uint32_t duration );
-	virtual CCallableBanRemove *ThreadedBanRemove( string server, string user );
-	virtual CCallableBanRemove *ThreadedBanRemove( string user );
+	virtual CCallableBanRemove *ThreadedBanRemove( string server, string user, string reason );
+	virtual CCallableBanRemove *ThreadedBanRemove( string user, string reason );
 	virtual CCallableBanList *ThreadedBanList( string server );
 	virtual CCallableCommandList *ThreadedCommandList(  );
 	virtual CCallableBnetUpdate *ThreadedBnetUpdate( string server, uint32_t status );
@@ -232,8 +232,8 @@ vector<string> MySQLAdminList( void *conn, string *error, uint32_t botid, string
 uint32_t MySQLBanCount( void *conn, string *error, uint32_t botid, string server );
 CDBBan *MySQLBanCheck( void *conn, string *error, uint32_t botid, string server, string user, string ip );
 bool MySQLBanAdd( void *conn, string *error, uint32_t botid, string server, string user, string ip, string gamename, string admin, string reason, uint32_t duration );
-bool MySQLBanRemove( void *conn, string *error, uint32_t botid, string server, string user );
-bool MySQLBanRemove( void *conn, string *error, uint32_t botid, string user );
+bool MySQLBanRemove( void *conn, string *error, uint32_t botid, string server, string user, string reason );
+bool MySQLBanRemove( void *conn, string *error, uint32_t botid, string user, string reason );
 vector<CDBBan *> MySQLBanList( void *conn, string *error, uint32_t botid, string server );
 vector<string> MySQLCommandList( void *conn, string *error, uint32_t botid );
 uint32_t MySQLBnetUpdate( void *conn, string *error, uint32_t botid, string server, uint32_t status );
@@ -367,7 +367,7 @@ public:
 class CMySQLCallableBanRemove : public CCallableBanRemove, public CMySQLCallable
 {
 public:
-	CMySQLCallableBanRemove( string nServer, string nUser, void *nConnection, uint32_t nSQLBotID, string nSQLServer, string nSQLDatabase, string nSQLUser, string nSQLPassword, uint16_t nSQLPort ) : CBaseCallable( ), CCallableBanRemove( nServer, nUser ), CMySQLCallable( nConnection, nSQLBotID, nSQLServer, nSQLDatabase, nSQLUser, nSQLPassword, nSQLPort ) { }
+	CMySQLCallableBanRemove( string nServer, string nUser, string nReason, void *nConnection, uint32_t nSQLBotID, string nSQLServer, string nSQLDatabase, string nSQLUser, string nSQLPassword, uint16_t nSQLPort ) : CBaseCallable( ), CCallableBanRemove( nServer, nUser, nReason ), CMySQLCallable( nConnection, nSQLBotID, nSQLServer, nSQLDatabase, nSQLUser, nSQLPassword, nSQLPort ) { }
 	virtual ~CMySQLCallableBanRemove( ) { }
 
 	virtual void operator( )( );

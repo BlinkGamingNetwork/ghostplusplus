@@ -92,12 +92,12 @@ bool CGHostDB :: BanAdd( string server, string user, string ip, string gamename,
 	return false;
 }
 
-bool CGHostDB :: BanRemove( string server, string user )
+bool CGHostDB :: BanRemove( string server, string user, string reason )
 {
 	return false;
 }
 
-bool CGHostDB :: BanRemove( string user )
+bool CGHostDB :: BanRemove( string user, string reason )
 {
 	return false;
 }
@@ -242,12 +242,12 @@ CCallableBanAdd *CGHostDB :: ThreadedBanAdd( string server, string user, string 
 	return NULL;
 }
 
-CCallableBanRemove *CGHostDB :: ThreadedBanRemove( string server, string user )
+CCallableBanRemove *CGHostDB :: ThreadedBanRemove( string server, string user, string reason )
 {
 	return NULL;
 }
 
-CCallableBanRemove *CGHostDB :: ThreadedBanRemove( string user )
+CCallableBanRemove *CGHostDB :: ThreadedBanRemove( string user, string reason )
 {
 	return NULL;
 }

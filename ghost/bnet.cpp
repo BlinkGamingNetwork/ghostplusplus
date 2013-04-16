@@ -1527,7 +1527,24 @@ void CBNET :: BotCommand(string Message, string User, bool Whisper)
 		//
 
 		else if( ( Command == "delban" || Command == "unban" ) && !Payload.empty( ) )
-			m_PairedBanRemoves.push_back( PairedBanRemove( Whisper ? User : string( ), m_GHost->m_DB->ThreadedBanRemove( Payload ) ) );
+		{
+			string Victim;
+			string Reason;
+			stringstream SS;
+			SS << Payload;
+			SS >> Victim;
+
+			if( !SS.eof( ) )
+			{
+				getline( SS, Reason );
+				string :: size_type Start = Reason.find_first_not_of( " " );
+
+				if( Start != string :: npos )
+					Reason = Reason.substr( Start );
+			}
+			
+			m_PairedBanRemoves.push_back( PairedBanRemove( Whisper ? User : string( ), m_GHost->m_DB->ThreadedBanRemove( Victim, Reason ) ) );
+		}
 
 		//
 		// !DISABLE

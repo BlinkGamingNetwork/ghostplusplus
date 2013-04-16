@@ -787,7 +787,7 @@ bool CGHostDBSQLite :: BanAdd( string server, string user, string ip, string gam
 	return Success;
 }
 
-bool CGHostDBSQLite :: BanRemove( string server, string user )
+bool CGHostDBSQLite :: BanRemove( string server, string user, string reason )
 {
 	transform( user.begin( ), user.end( ), user.begin( ), (int(*)(int))tolower );
 	bool Success = false;
@@ -813,7 +813,7 @@ bool CGHostDBSQLite :: BanRemove( string server, string user )
 	return Success;
 }
 
-bool CGHostDBSQLite :: BanRemove( string user )
+bool CGHostDBSQLite :: BanRemove( string user, string reason )
 {
 	transform( user.begin( ), user.end( ), user.begin( ), (int(*)(int))tolower );
 	bool Success = false;
@@ -1535,18 +1535,18 @@ CCallableBanAdd *CGHostDBSQLite :: ThreadedBanAdd( string server, string user, s
 	return Callable;
 }
 
-CCallableBanRemove *CGHostDBSQLite :: ThreadedBanRemove( string server, string user )
+CCallableBanRemove *CGHostDBSQLite :: ThreadedBanRemove( string server, string user, string reason )
 {
-	CCallableBanRemove *Callable = new CCallableBanRemove( server, user );
-	Callable->SetResult( BanRemove( server, user ) );
+	CCallableBanRemove *Callable = new CCallableBanRemove( server, user, reason );
+	Callable->SetResult( BanRemove( server, user, reason ) );
 	Callable->SetReady( true );
 	return Callable;
 }
 
-CCallableBanRemove *CGHostDBSQLite :: ThreadedBanRemove( string user )
+CCallableBanRemove *CGHostDBSQLite :: ThreadedBanRemove( string user, string reason )
 {
-	CCallableBanRemove *Callable = new CCallableBanRemove( string( ), user );
-	Callable->SetResult( BanRemove( user ) );
+	CCallableBanRemove *Callable = new CCallableBanRemove( string( ), user, reason );
+	Callable->SetResult( BanRemove( user, reason ) );
 	Callable->SetReady( true );
 	return Callable;
 }

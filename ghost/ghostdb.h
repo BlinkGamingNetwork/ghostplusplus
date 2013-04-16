@@ -85,8 +85,8 @@ public:
 	virtual uint32_t BanCount( string server );
 	virtual CDBBan *BanCheck( string server, string user, string ip );
 	virtual bool BanAdd( string server, string user, string ip, string gamename, string admin, string reason, uint32_t duration );
-	virtual bool BanRemove( string server, string user );
-	virtual bool BanRemove( string user );
+	virtual bool BanRemove( string server, string user, string reason );
+	virtual bool BanRemove( string user, string reason );
 	virtual vector<CDBBan *> BanList( string server );
 	virtual vector<string> CommandList(  );
 	virtual uint32_t BnetUpdate( string server, uint32_t status );
@@ -118,8 +118,8 @@ public:
 	virtual CCallableBanCount *ThreadedBanCount( string server );
 	virtual CCallableBanCheck *ThreadedBanCheck( string server, string user, string ip );
 	virtual CCallableBanAdd *ThreadedBanAdd( string server, string user, string ip, string gamename, string admin, string reason, uint32_t duration );
-	virtual CCallableBanRemove *ThreadedBanRemove( string server, string user );
-	virtual CCallableBanRemove *ThreadedBanRemove( string user );
+	virtual CCallableBanRemove *ThreadedBanRemove( string server, string user, string reason );
+	virtual CCallableBanRemove *ThreadedBanRemove( string user, string reason );
 	virtual CCallableBanList *ThreadedBanList( string server );
 	virtual CCallableCommandList *ThreadedCommandList( );
 	virtual CCallableBnetUpdate *ThreadedBnetUpdate( string server, uint32_t status );
@@ -329,14 +329,16 @@ class CCallableBanRemove : virtual public CBaseCallable
 protected:
 	string m_Server;
 	string m_User;
+	string m_Reason;
 	bool m_Result;
 
 public:
-	CCallableBanRemove( string nServer, string nUser ) : CBaseCallable( ), m_Server( nServer ), m_User( nUser ), m_Result( false ) { }
+	CCallableBanRemove( string nServer, string nUser, string nReason ) : CBaseCallable( ), m_Server( nServer ), m_User( nUser ), m_Reason( nReason ), m_Result( false ) { }
 	virtual ~CCallableBanRemove( );
 
 	virtual string GetServer( )				{ return m_Server; }
 	virtual string GetUser( )				{ return m_User; }
+	virtual string GetReason( )				{ return m_Reason; }
 	virtual bool GetResult( )				{ return m_Result; }
 	virtual void SetResult( bool nResult )	{ m_Result = nResult; }
 };
